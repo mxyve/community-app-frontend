@@ -1,5 +1,5 @@
 <template>
-  <view>工作台</view>
+  <view>邻里圈</view>
 </template>
 
 <script setup></script>
