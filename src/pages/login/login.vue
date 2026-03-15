@@ -54,7 +54,7 @@ const sendPhoneCode = async () => {
   if (phoneForm.phone && isPhoneAvailable(phoneForm.phone)) {
     timer.value = true
     const res = await sendCode(phoneForm.phone)
-    if (res.code === 0) {
+    if (res.code === 200) {
       uni.showToast({
         title: '验证码发送成功',
         icon: 'none',
@@ -105,7 +105,7 @@ const handleLoginClick = async () => {
   }
   // 3.手机号登录 保存token 并获取用户信息
   const res = await phoneLogin(phoneForm.phone, phoneForm.code)
-  if (res.code === 0) {
+  if (res.code === 200) {
     uni.setStorageSync('token', res.data.accessToken)
     getLoginUserInfo()
     uni.showToast({
@@ -118,7 +118,7 @@ const handleLoginClick = async () => {
     })
   } else {
     uni.showToast({
-      title: res.msg,
+      title: res.message,
       icon: 'none',
     })
   }
@@ -138,7 +138,7 @@ const wxLogin = () => {
         success: async (loginRes) => {
           // 3.调用后台接口登录
           const wxLoginRes = await myWxLogin(loginRes.code, res.encryptedData, res.iv)
-          if (wxLoginRes.code === 0) {
+          if (wxLoginRes.code === 200) {
             uni.showToast({
               title: '登录成功',
               icon: 'success',
@@ -151,7 +151,7 @@ const wxLogin = () => {
             })
           } else {
             uni.showToast({
-              title: wxLoginRes.msg,
+              title: wxLoginRes.message,
               icon: 'none',
             })
             return
@@ -174,11 +174,12 @@ const wxLogin = () => {
  */
 const getLoginUserInfo = async () => {
   const res = await getUserInfo()
-  if (res.code === 0) {
+  if (res.code === 200) {
     userStore.setUserInfo(res.data)
+    uni.setStorageSync('userInfo', res.data)
   } else {
     uni.showToast({
-      title: res.msg,
+      title: res.message,
       icon: 'none',
     })
   }

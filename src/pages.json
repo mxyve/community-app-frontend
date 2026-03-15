@@ -20,6 +20,8 @@
     {
       "path": "pages/chat/chat",
       "style": {
+        "navigationStyle": "custom",
+        "navigationBarTextStyle": "white",
         "navigationBarTitleText": "对话"
       }
     },
@@ -47,6 +49,22 @@
         "navigationStyle": "custom",
         "navigationBarTextStyle": "white",
         "navigationBarTitleText": "位置"
+      }
+    },
+    {
+      "path": "pages/index/notice",
+      "style": {
+        "navigationStyle": "custom",
+        "navigationBarTextStyle": "white",
+        "navigationBarTitleText": "公告"
+      }
+    },
+    {
+      "path": "pages/chat/chatDetail",
+      "style": {
+        "navigationStyle": "custom",
+        "navigationBarTextStyle": "white",
+        "navigationBarTitleText": "会话详情"
       }
     }
   ],

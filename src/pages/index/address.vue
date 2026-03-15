@@ -337,7 +337,7 @@ function clearSelection() {
     }
     .select-btn {
       font-size: 28rpx;
-      color: #c48b66;
+      color: #f0a070;
     }
   }
 }
@@ -368,7 +368,7 @@ function clearSelection() {
       .select-all {
         margin-left: auto;
         font-size: 28rpx;
-        color: #c48b66;
+        color: #f0a070;
         padding: 8rpx 20rpx;
         background: #f2e8db;
         border-radius: 20rpx;
@@ -388,7 +388,7 @@ function clearSelection() {
           .select-all {
             margin-left: auto;
             font-size: 26rpx;
-            color: #c48b66;
+            color: #f0a070;
             padding: 6rpx 16rpx;
             background: #f2e8db;
             border-radius: 16rpx;
@@ -406,7 +406,7 @@ function clearSelection() {
             font-size: 26rpx;
             color: #665c52;
             &.active {
-              background: #c48b66;
+              background: #f0a070;
               color: #fff;
             }
           }
@@ -429,7 +429,7 @@ function clearSelection() {
     color: #998b7d;
     text-align: center;
     &.active {
-      color: #c48b66;
+      color: #f0a070;
       font-weight: bold;
     }
   }
@@ -447,7 +447,7 @@ function clearSelection() {
 .selected-info {
   text-align: center;
   font-size: 28rpx;
-  color: #c48b66;
+  color: #f0a070;
   font-weight: bold;
   margin-bottom: 20rpx;
 }
@@ -459,8 +459,8 @@ function clearSelection() {
   flex: 1;
   height: 88rpx;
   border-radius: 44rpx;
-  border: 2rpx solid #c48b66;
-  color: #c48b66;
+  border: 2rpx solid #f0a070;
+  color: #f0a070;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -470,7 +470,7 @@ function clearSelection() {
   flex: 1;
   height: 88rpx;
   border-radius: 44rpx;
-  background: #c48b66;
+  background: #f0a070;
   color: #fff;
   display: flex;
   align-items: center;

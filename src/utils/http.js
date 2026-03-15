@@ -1,6 +1,6 @@
-import { useUserStorage } from '@/stores/user'
+import { useUserStore } from '@/stores/user'
 // 这里也可以根据实际情况修改成线上接口地址
-const baseURL = 'http://localhost:8080/community-app-api'
+const baseURL = 'http://localhost:8080'
 
 export const http = (options) => {
   // 1.返回 Promise 对象
@@ -11,11 +11,11 @@ export const http = (options) => {
       success(res) {
         // 状态码 2XX，参考 axios 的设计
         if (res.statusCode >= 200 && res.statusCode < 300) {
-          if (res.data.code !== 0) {
+          if (res.data.code !== 200) {
             // 根据后端错误信息轻提示
             uni.showToast({
               icon: 'error',
-              title: res.data.msg || '请求错误',
+              title: res.data.message || '请求错误',
             })
           } else {
             // 提取核心数据 res.data
@@ -31,7 +31,7 @@ export const http = (options) => {
           // 其他错误 -> 根据后端错误信息轻提示
           uni.showToast({
             icon: 'none',
-            title: res.data.msg || '请求错误',
+            title: res.data.message || '请求错误',
           })
           reject(res)
         }
@@ -57,9 +57,10 @@ const httpInterceptor = {
     options.header = {
       ...options.header,
     }
-    const token = uni.getStorageSync('token') || 'no-token'
+    // const token = uni.getStorageSync('token') || 'no-token'
+    const token = uni.getStorageSync('token')
     if (token) {
-      options.header.Authorization = token
+      options.header.Authorization = 'Bearer ' + token
     }
   },
 }

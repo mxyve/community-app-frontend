@@ -8,7 +8,7 @@ import { http } from '@/utils/http'
 export const sendCode = (phone) => {
   return http({
     method: 'POST',
-    url: '/common/sendSms?phone=' + phone,
+    url: '/api/v1/common/sendSms?phone=' + phone,
   })
 }
 
@@ -21,7 +21,10 @@ export const sendCode = (phone) => {
 export const phoneLogin = (phone, code) => {
   return http({
     method: 'POST',
-    url: `/auth/login?phone=${phone}&code=${code}`,
+    url: `/api/v1/auth/login?phone=${phone}&code=${code}`,
+    header: {
+      Authorization: '',
+    },
   })
 }
 
@@ -34,7 +37,7 @@ export const phoneLogin = (phone, code) => {
 export const myWxLogin = (code, encryptedData, iv) => {
   return http({
     method: 'POST',
-    url: `/auth/weChatLogin`,
+    url: `/api/v1/auth/weChatLogin`,
     data: {
       code,
       encryptedData,
@@ -50,7 +53,7 @@ export const myWxLogin = (code, encryptedData, iv) => {
 export const logout = () => {
   return http({
     method: 'POST',
-    url: '/auth/logout',
+    url: '/api/v1/auth/logout',
   })
 }
 
@@ -61,6 +64,6 @@ export const logout = () => {
 export const getUserInfo = () => {
   return http({
     method: 'GET',
-    url: '/user/info',
+    url: '/api/v1/user/info',
   })
 }

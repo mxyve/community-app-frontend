@@ -31,7 +31,7 @@ const handleQuitClick = () => {
     success: async (res) => {
       if (res.confirm) {
         const res = await logout()
-        if (res.code === 0) {
+        if (res.code === 200) {
           userStore.clearUserInfo()
           uni.removeStorageSync('token')
           uni.showToast({
