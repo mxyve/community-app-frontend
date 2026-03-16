@@ -112,7 +112,7 @@ const handleLoginClick = async () => {
       title: '登录成功',
       icon: 'success',
     })
-    // 这里先跳到首页
+    // 这里先跳到首页 
     uni.switchTab({
       url: '/pages/index/index',
     })

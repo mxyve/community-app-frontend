@@ -28,6 +28,8 @@
     {
       "path": "pages/community/community",
       "style": {
+        "navigationStyle": "custom",
+        "navigationBarTextStyle": "white",
         "navigationBarTitleText": "邻里圈"
       }
     },
@@ -65,6 +67,14 @@
         "navigationStyle": "custom",
         "navigationBarTextStyle": "white",
         "navigationBarTitleText": "会话详情"
+      }
+    },
+    {
+      "path": "pages/community/publish",
+      "style": {
+        "navigationStyle": "custom",
+        "navigationBarTextStyle": "white",
+        "navigationBarTitleText": "发布文章"
       }
     }
   ],
