@@ -15,6 +15,10 @@
       <text class="notice-label">社区公告：</text>
       <text class="notice-content">{{ noticeContent }}</text>
     </view>
+
+    <view @click="goToservice">
+      <text>生活帮手：</text>
+    </view>
   </view>
 </template>
 
@@ -43,7 +47,11 @@ function goToNoticeDetail() {
   })
 }
 
-goToNoticeDetail
+function goToservice() {
+  uni.navigateTo({
+    url: '/pages/services/serviceList',
+  })
+}
 
 // 页面显示时，接受上一页传回来的地址（非常重  要）
 onMounted(() => {

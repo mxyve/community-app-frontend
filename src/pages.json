@@ -76,6 +76,22 @@
         "navigationBarTextStyle": "white",
         "navigationBarTitleText": "发布文章"
       }
+    },
+    {
+      "path": "pages/services/serviceList",
+      "style": {
+        "navigationStyle": "custom",
+        "navigationBarTextStyle": "white",
+        "navigationBarTitleText": "服务列表"
+      }
+    },
+    {
+      "path": "pages/services/serviceDetail",
+      "style": {
+        "navigationStyle": "custom",
+        "navigationBarTextStyle": "white",
+        "navigationBarTitleText": "服务详情"
+      }
     }
   ],
   "globalStyle": {
