@@ -107,12 +107,12 @@ const handleLoginClick = async () => {
   const res = await phoneLogin(phoneForm.phone, phoneForm.code)
   if (res.code === 200) {
     uni.setStorageSync('token', res.data.accessToken)
-    getLoginUserInfo()
+    await getLoginUserInfo()
     uni.showToast({
       title: '登录成功',
       icon: 'success',
     })
-    // 这里先跳到首页 
+    // 这里先跳到首页
     uni.switchTab({
       url: '/pages/index/index',
     })
@@ -145,7 +145,7 @@ const wxLogin = () => {
             })
             // 4.保存token以及回退页面
             uni.setStorageSync('token', wxLoginRes.data.accessToken)
-            getLoginUserInfo()
+            await getLoginUserInfo()
             uni.switchTab({
               url: '/pages/index/index',
             })
@@ -177,6 +177,7 @@ const getLoginUserInfo = async () => {
   if (res.code === 200) {
     userStore.setUserInfo(res.data)
     uni.setStorageSync('userInfo', res.data)
+    console.log(res)
   } else {
     uni.showToast({
       title: res.message,
