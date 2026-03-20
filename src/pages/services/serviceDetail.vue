@@ -67,7 +67,7 @@
 
     <!-- 底部 -->
     <view class="bottom-bar">
-      <view class="btn-left" @click="handleCar">加入购物车</view>
+      <view class="btn-left" @click="handleCar">收藏</view>
       <view class="btn-right" @click="handleBook">立即预约</view>
     </view>
   </view>
