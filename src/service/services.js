@@ -83,3 +83,39 @@ export function deleteOrder(id) {
     url: `/api/v1/orders/delete/${id}`,
   })
 }
+
+/* ---------------- 购物车相关 ----------------- */
+// 新增购物车
+export function addCart(data) {
+  return http({
+    method: 'POST',
+    url: '/api/v1/carts/add',
+    data,
+  })
+}
+
+// 获取购物车列表
+export function getCartPage(data) {
+  return http({
+    method: 'POST',
+    url: '/api/v1/carts/pages',
+    data,
+  })
+}
+
+// 更新购物车
+export function updateCart(data) {
+  return http({
+    method: 'PUT',
+    url: '/api/v1/carts/update',
+    data,
+  })
+}
+
+// 删除购物车项
+export function deleteCart(id) {
+  return http({
+    method: 'DELETE',
+    url: `/api/v1/carts/delete/${id}`,
+  })
+}

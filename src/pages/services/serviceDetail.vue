@@ -76,6 +76,7 @@
 <script setup>
 import { ref, onMounted } from 'vue'
 import { getServiceDetail } from '@/service/services.js'
+import { addCart } from '@/service/services.js'
 
 const { safeAreaInsets } = uni.getSystemInfoSync()
 
@@ -118,8 +119,24 @@ const fetchDetail = async (id) => {
 }
 
 const goBack = () => uni.navigateBack()
-const handleCar = () => uni.showToast({ title: '购物车加入成功', icon: 'success' })
-const handleBook = () => uni.showToast({ title: '预约功能开发中', icon: 'none' })
+const handleCar = async () => {
+  try {
+    await addCart({
+      merchantId: detail.value.merchantId,
+      serviceId: detail.value.id,
+      specId: 1,
+      quantity: 1,
+    })
+    uni.showToast({ title: '收藏成功', icon: 'success' })
+  } catch (err) {
+    uni.showToast({ title: '加入失败', icon: 'none' })
+  }
+}
+const handleBook = () => {
+  uni.navigateTo({
+    url: `/pages/services/book?service=${JSON.stringify(detail.value)}`,
+  })
+}
 </script>
 
 <style lang="scss" scoped>

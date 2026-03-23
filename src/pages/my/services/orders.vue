@@ -43,7 +43,7 @@
           :right-options="[{ text: '删除', type: 'error' }]"
           @click="handleDelete(item.id)"
         >
-          <view class="order-item">
+          <view class="order-item" @click="goDetail(item.id)">
             <!-- 订单编号 + 状态 -->
             <view class="order-top">
               <view class="order-left">
@@ -212,6 +212,12 @@ const formatTime = (time) => {
 // 返回
 function goBack() {
   uni.navigateBack()
+}
+
+const goDetail = (id) => {
+  uni.navigateTo({
+    url: `/pages/my/services/ordersDetail?id=${id}`,
+  })
 }
 </script>
 
