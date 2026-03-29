@@ -101,6 +101,8 @@
 <script setup>
 import { ref, computed, onMounted, getCurrentInstance } from 'vue'
 import { provinceData } from '@/common/area.js' // 你的全国省市区数据
+import { updateLocation } from '@/service/location.js'
+import { getUserLocation } from '@/service/location.js'
 
 const { safeAreaInsets } = uni.getSystemInfoSync()
 
@@ -127,11 +129,44 @@ const selectedFullText = computed(() => {
 })
 
 // 初始化数据
-onMounted(() => {
+onMounted(async () => {
   provinceList.value = provinceData
     .map((p) => ({ ...p, expanded: false }))
-    // 按首字母 A-Z 排序
     .sort((a, b) => a.firstLetter.localeCompare(b.firstLetter))
+
+  // ===================== 新加：加载用户已保存的位置 ==================
+  try {
+    const res = await getUserLocation()
+    const { province, city, district } = res.data
+
+    // 自动匹配省
+    if (province) {
+      const p = provinceList.value.find((item) => item.name === province)
+      if (p) {
+        selectedProvince.value = p
+        p.expanded = true // 自动展开
+
+        // 自动匹配市
+        if (city) {
+          const c = p.children.find((item) => item.name === city)
+          if (c) {
+            selectedCity.value = c
+            c.expanded = true // 自动展开
+
+            // 自动匹配区
+            if (district) {
+              const d = c.children.find((item) => item.name === district)
+              if (d) {
+                selectedDistrict.value = d
+              }
+            }
+          }
+        }
+      }
+    }
+  } catch (err) {
+    console.log('获取历史位置失败', err)
+  }
 })
 
 function goBack() {
@@ -226,13 +261,27 @@ function confirmSelection() {
   if (selectedCity.value) addressText += ' · ' + selectedCity.value.name
   if (selectedDistrict.value) addressText += ' · ' + selectedDistrict.value.name
 
-  uni.$emit('addressSelected', {
+  // 保存到后端
+  const data = {
     province: selectedProvince.value?.name || '',
     city: selectedCity.value?.name || '',
     district: selectedDistrict.value?.name || '',
-    fullText: addressText || '请选择地区',
-  })
-  uni.navigateBack()
+  }
+
+  updateLocation(data)
+    .then((res) => {
+      uni.$emit('addressSelected', {
+        province: data.province,
+        city: data.city,
+        district: data.district,
+        fullText: addressText || '请选择地区',
+      })
+      uni.showToast({ title: '保存成功', icon: 'success' })
+      uni.navigateBack()
+    })
+    .catch((err) => {
+      uni.showToast({ title: '保存失败', icon: 'none' })
+    })
 }
 
 // 清空选择

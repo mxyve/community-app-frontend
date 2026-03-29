@@ -124,11 +124,12 @@
 <script setup>
 import { ref, onMounted, onUnmounted } from 'vue'
 import { getArticlePage, deleteArticle, getTagList } from '@/service/community.js'
+import { getUserLocation } from '@/service/location.js'
 
 const { safeAreaInsets } = uni.getSystemInfoSync()
 
 // 定位显示
-const showLocation = ref('杭州·滨江社区')
+const showLocation = ref('请选择地区')
 const onlineCount = ref(123)
 const todayNewCount = ref(18)
 
@@ -152,12 +153,12 @@ const tagEmojiMap = ref({
 })
 
 onMounted(() => {
+  fetchUserLocation()
   fetchTagList()
   fetchArticleList()
 
-  // 监听地址选择
   uni.$on('addressSelected', (addr) => {
-    showLocation.value = addr.fullText || '杭州·滨江社区'
+    showLocation.value = addr.fullText || '请选择地区'
     refreshList()
   })
 })
@@ -165,6 +166,15 @@ onMounted(() => {
 onUnmounted(() => {
   uni.$off('addressSelected')
 })
+
+async function fetchUserLocation() {
+  try {
+    const res = await getUserLocation()
+    showLocation.value = res.data.fullText || '请选择地区'
+  } catch (err) {
+    showLocation.value = '请选择地区'
+  }
+}
 
 const getTagEmoji = (tagId) => {
   const tag = tagList.value.find((t) => t.tagId === tagId)

@@ -12,6 +12,14 @@
       </view>
     </view>
 
+    <view class="location-bar" @click="goToSelectAddress">
+      <image class="loc-icon" src="/static/images/diqiu.png" mode="aspectFit"></image>
+      <text class="loc-text">{{ showLocation }}</text>
+      <image class="arrow" src="/static/icon/arrow_down.png" mode="aspectFill"></image>
+    </view>
+
+    <view class="divider"></view>
+
     <!-- 搜索框 -->
     <view class="search-bar">
       <view class="search-input" @click="handleSearchClick">
@@ -98,6 +106,7 @@
 <script setup>
 import { ref, onMounted } from 'vue'
 import { getServicePage, getCategoryList } from '@/service/services.js'
+import { getUserLocation } from '@/service/location.js'
 
 const { safeAreaInsets } = uni.getSystemInfoSync()
 
@@ -126,10 +135,25 @@ const serviceEmojiMap = ref({
   6: '🚗', // 洗车保养
 })
 
-onMounted(() => {
-  fetchCategoryList()
-  fetchServiceList()
-})
+// 显示选中的地区
+const showLocation = ref('请选择地区')
+
+// 跳转到地址选择页面
+function goToSelectAddress() {
+  uni.navigateTo({
+    url: '/pages/index/address',
+  })
+}
+
+// 获取最新位置
+async function fetchUserLocation() {
+  try {
+    const res = await getUserLocation()
+    showLocation.value = res.data.fullText || '请选择地区'
+  } catch (err) {
+    showLocation.value = '请选择地区'
+  }
+}
 
 // 获取分类列表
 const fetchCategoryList = async () => {
@@ -235,6 +259,18 @@ const goToDetail = (serviceId) => {
 const goBack = () => {
   uni.navigateBack()
 }
+
+onMounted(() => {
+  fetchUserLocation()
+  fetchCategoryList()
+  fetchServiceList()
+
+  // 监听地址更新
+  uni.$on('addressSelected', (addressInfo) => {
+    showLocation.value = addressInfo.fullText || '请选择地区'
+    refreshList() // 位置变了，刷新服务列表
+  })
+})
 </script>
 
 <style lang="scss" scoped>
@@ -276,6 +312,45 @@ const goBack = () => {
     font-size: 36rpx;
     color: #332b22;
   }
+}
+
+/* 位置选择栏 */
+.location-bar {
+  display: flex;
+  align-items: center;
+  height: 54rpx;
+  margin: 0rpx 0rpx 12rpx 30rpx;
+  padding: 10rpx 30rpx;
+  background: #fff;
+  border-radius: 40rpx;
+  box-shadow: 0 2rpx 10rpx rgba(196, 139, 102, 0.25);
+  width: fit-content;
+  max-width: 80%;
+
+  .loc-icon {
+    width: 35rpx;
+    height: 35rpx;
+    margin-right: 12rpx;
+  }
+  .loc-text {
+    flex: 1;
+    font-size: 28rpx;
+    color: #333;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .arrow {
+    width: 30rpx;
+    height: 30rpx;
+    margin-left: 8rpx;
+  }
+}
+
+.divider {
+  height: 2rpx;
+  background: #f0d4b8;
+  margin: 2rpx 0rpx 2rpx 0rpx;
 }
 
 /* 搜索框 */

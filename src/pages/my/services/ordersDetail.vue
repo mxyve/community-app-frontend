@@ -1,5 +1,5 @@
 <template>
-  <view class="container" :style="{ paddingTop: safeAreaInsets.top + 10 + 'px' }">
+  <view class="container" :style="{ paddingTop: safeAreaInsets.top + 'px' }">
     <!-- 顶部导航 -->
     <view class="header">
       <image

@@ -24,6 +24,7 @@
 
 <script setup>
 import { ref, onMounted, onUnmounted } from 'vue'
+import { getUserLocation } from '@/service/location.js'
 
 const { safeAreaInsets } = uni.getSystemInfoSync()
 
@@ -53,8 +54,19 @@ function goToservice() {
   })
 }
 
+// 获取最新位置
+async function fetchUserLocation() {
+  try {
+    const res = await getUserLocation()
+    showLocation.value = res.data.fullText || '请选择地区'
+  } catch (e) {
+    showLocation.value = '请选择地区'
+  }
+}
+
 // 页面显示时，接受上一页传回来的地址（非常重  要）
 onMounted(() => {
+  fetchUserLocation()
   // 监听页面显示，获取选择后的地址
   uni.$on('addressSelected', (addressInfo) => {
     showLocation.value = addressInfo.fullText || '请选择地区'
