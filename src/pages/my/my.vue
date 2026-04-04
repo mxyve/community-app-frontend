@@ -75,12 +75,12 @@
         <view class="neighborhood-grid">
           <view class="neighbor-card" @click="goToPosts">
             <text class="neighbor-icon">📝</text>
-            <text class="neighbor-number">5</text>
+            <text class="neighbor-number">{{ myPostCount }}</text>
             <text class="neighbor-title">我的发布</text>
           </view>
           <view class="neighbor-card" @click="goToLikes">
             <text class="neighbor-icon">❤️</text>
-            <text class="neighbor-number">18</text>
+            <text class="neighbor-number">{{ myLikeCount }}</text>
             <text class="neighbor-title">我的点赞</text>
           </view>
           <view class="neighbor-card" @click="goToComments">
@@ -131,19 +131,45 @@
 </template>
 
 <script setup>
+import { ref } from 'vue'
 import { onShow } from '@dcloudio/uni-app'
 import { logout } from '@/service/user'
 import { useUserStore } from '@/stores/user'
+import { countMyLikeArticles, countMyPostArticles } from '@/service/community.js'
 
 const { safeAreaInsets } = uni.getSystemInfoSync()
 const userStore = useUserStore()
+
+// 邻里圈统计数量
+const myPostCount = ref(0)
+const myLikeCount = ref(0)
 
 onShow(() => {
   const userInfo = uni.getStorageSync('userInfo')
   if (userInfo) {
     userStore.setUserInfo(userInfo)
   }
+  fetchMyCommunityCount()
 })
+
+// 获取我的发布、我的点赞数量
+const fetchMyCommunityCount = async () => {
+  try {
+    // 我的发布数量
+    const res1 = await countMyPostArticles()
+    myPostCount.value = res1.data || 0
+  } catch {
+    myPostCount.value = 0
+  }
+
+  try {
+    // 我的点赞数量
+    const res2 = await countMyLikeArticles()
+    myLikeCount.value = res2.data || 0
+  } catch {
+    myLikeCount.value = 0
+  }
+}
 
 function goToEditProfile() {
   uni.navigateTo({

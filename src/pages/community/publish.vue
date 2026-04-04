@@ -1,5 +1,5 @@
 <template>
-  <view class="container" :style="{ paddingTop: safeAreaInsets.top + 'px' }">
+  <view class="container" :style="{ paddingTop: safeAreaInsets.top + 10 + 'px' }">
     <!-- 顶部导航 - 杂志风格 -->
     <view class="header">
       <view class="header-left">
@@ -78,30 +78,21 @@
             :key="tag.tagId"
             class="tag-item"
             :class="{ active: form.tagId === tag.tagId }"
+            :style="{ borderColor: tag.color }"
             @click="form.tagId = tag.tagId"
           >
-            <text class="tag-emoji">{{ getTagEmoji(tag.name) }}</text>
+            <text class="tag-emoji">{{ getTagEmoji(tag.tagId) }}</text>
             <text>{{ tag.name }}</text>
           </view>
         </view>
       </view>
 
       <!-- 位置选择 - 杂志卡片风格 -->
-      <view class="card">
-        <view class="card-header">
-          <text class="card-title">所在位置</text>
-          <text class="card-desc">让邻居更近</text>
-        </view>
-        <view class="location-selector" @click="goToSelectLocation">
-          <view class="location-left">
-            <text class="location-icon">📍</text>
-            <text class="location-text">{{ locationText }}</text>
-          </view>
-          <text class="location-arrow">›</text>
-        </view>
+      <view class="card location-card">
+        <AreaPicker v-model="areaInfo" @change="handleAreaChange" />
       </view>
 
-      <view class="fixed-publish">
+      <view class="publish-wrapper">
         <button class="publish-btn" @click="handlePublish">发布文章</button>
       </view>
       <!-- 留白空间 -->
@@ -111,9 +102,10 @@
 </template>
 
 <script setup>
-import { ref, onMounted, onUnmounted } from 'vue'
+import { ref, onMounted } from 'vue'
 import { createArticle } from '@/service/community.js'
 import { getTagList } from '@/service/community.js'
+import AreaPicker from '@/components/AreaPicker.vue'
 
 const { safeAreaInsets } = uni.getSystemInfoSync()
 
@@ -129,55 +121,40 @@ const form = ref({
   area: '',
 })
 
+// 地区选择
+const areaInfo = ref({ province: '', city: '', area: '' })
+const handleAreaChange = (val) => {
+  form.value.province = val.province
+  form.value.city = val.city
+  form.value.area = val.area
+}
+
 // 图片列表
 const imageList = ref([])
-
-// 显示选择的地区
-const locationText = ref('点击选择地区')
-
-// 标签emoji映射
-const tagEmojiMap = {
-  失物招领: '🧾',
-  生活碎片: '🏠',
-  邻里互助: '🤝',
-  社区活动: '🎉',
-  萌宠日常: '🐕',
-  闲置交换: '🔄',
-  拼车出行: '🚗',
-  紧急求助: '🆘',
-}
 
 // 获取标签
 onMounted(() => {
   fetchTagList()
-
-  // 监听地址选择
-  uni.$on('addressSelected', (addr) => {
-    form.value.province = addr.province || ''
-    form.value.city = addr.city || ''
-    form.value.area = addr.area || ''
-    locationText.value = addr.fullText || '未选择地区'
-  })
-})
-
-onUnmounted(() => {
-  uni.$off('addressSelected')
 })
 
 const fetchTagList = async () => {
   const res = await getTagList()
+  console.log('tag', res)
   tagList.value = res.data || []
 }
 
-const getTagEmoji = (tagName) => {
-  return tagEmojiMap[tagName] || '📌'
-}
-
-// 去选择地址
-const goToSelectLocation = () => {
-  uni.navigateTo({
-    url: '/pages/index/address',
-  })
+const getTagEmoji = (tagId) => {
+  const emojiMap = {
+    1: '🔍', // 失物招领
+    2: '📷', // 生活碎片
+    3: '🤝', // 邻里互助
+    4: '🍳', // 美食分享
+    5: '🐾', // 宠物日常
+    6: '📦', // 二手闲置
+    7: '🏠', // 房屋租赁
+    8: '🌿', // 绿植园艺
+  }
+  return emojiMap[tagId] || '📌'
 }
 
 // 选择图片
@@ -186,7 +163,6 @@ const chooseImage = () => {
     count: 9 - imageList.value.length,
     success: (res) => {
       imageList.value = [...imageList.value, ...res.tempFilePaths]
-      // 实际项目中需要上传图片并获取URL
     },
   })
 }
@@ -209,9 +185,6 @@ const handlePublish = async () => {
   }
 
   try {
-    // 模拟图片上传，实际需要上传图片并获取URL
-    // form.value.img = imageList.value[0] || ''
-
     await createArticle(form.value)
     uni.showToast({ title: '发布成功', icon: 'success' })
     setTimeout(() => uni.navigateBack(), 1500)
@@ -229,7 +202,6 @@ function goBack() {
 .container {
   background: #faf5ef;
   min-height: 100vh;
-  padding-bottom: 20rpx;
 }
 
 .header {
@@ -254,7 +226,7 @@ function goBack() {
 
 .header-title {
   font-size: 36rpx;
-  color: #4a3a2e; // 深棕色
+  color: #4a3a2e;
   font-weight: 600;
 }
 
@@ -411,91 +383,38 @@ function goBack() {
 }
 
 .tag-item {
-  background: #f8f6f2;
-  padding: 16rpx 32rpx;
+  display: inline-flex;
+  align-items: center;
+  padding: 8rpx 30rpx;
+  background: transparent;
+  border: 2rpx solid #ccc;
   border-radius: 40rpx;
   font-size: 28rpx;
-  color: #5f4e40;
-  border: 2rpx solid #f0e4d8;
-  display: flex;
-  align-items: center;
+  font-weight: 600;
+  color: #4a3a2e;
   gap: 8rpx;
   transition: all 0.2s;
 
-  .tag-emoji {
-    font-size: 32rpx;
-  }
-
   &.active {
     background: #b86b3f;
-    color: white;
     border-color: #b86b3f;
-    transform: translateY(-2rpx);
-    box-shadow: 0 6rpx 12rpx -8rpx #b86b3f;
-  }
-
-  &:active {
-    transform: scale(0.96);
+    color: #fff;
   }
 }
 
-/* 位置选择器 */
-.location-selector {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  background: #f8f6f2;
-  padding: 24rpx 30rpx;
-  border-radius: 30rpx;
-  border: 2rpx solid #f0e4d8;
-  margin-top: 10rpx;
+/* 位置选择卡片 */
+.location-card {
+  overflow: visible;
+  position: relative;
+  z-index: 10;
 }
 
-.location-left {
-  display: flex;
-  align-items: center;
-  gap: 16rpx;
+/* 发布按钮容器 */
+.publish-wrapper {
+  margin-top: 20rpx;
+  margin-bottom: 40rpx;
 }
 
-.location-icon {
-  font-size: 36rpx;
-}
-
-.location-text {
-  font-size: 30rpx;
-  color: #4a3a2e;
-
-  &:empty {
-    color: #b9a89a;
-  }
-}
-
-.location-arrow {
-  font-size: 48rpx;
-  color: #b86b3f;
-  line-height: 1;
-}
-
-/* 底部留白 */
-.bottom-space {
-  height: 40rpx;
-}
-
-/* 移除原生的发布按钮 */
-.publish {
-  display: none;
-}
-
-.fixed-publish {
-  position: fixed;
-  left: 0;
-  bottom: 0;
-  width: 100%;
-  padding: 20rpx 30rpx;
-  background: #f8f6f2;
-  border-top: 1rpx solid #f0d4b8;
-  box-sizing: border-box;
-}
 .publish-btn {
   width: 100%;
   background: #b86b3f;
@@ -504,5 +423,15 @@ function goBack() {
   padding: 28rpx;
   font-size: 30rpx;
   font-weight: 500;
+  border: none;
+
+  &::after {
+    border: none;
+  }
+}
+
+/* 底部留白 */
+.bottom-space {
+  height: 40rpx;
 }
 </style>

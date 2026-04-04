@@ -190,6 +190,14 @@
         "navigationBarTextStyle": "white",
         "navigationBarTitleText": "预约"
       }
+    },
+    {
+      "path": "pages/community/detail",
+      "style": {
+        "navigationStyle": "custom",
+        "navigationBarTextStyle": "white",
+        "navigationBarTitleText": "文章详情"
+      }
     }
   ],
   "globalStyle": {

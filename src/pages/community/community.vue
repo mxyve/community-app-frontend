@@ -7,10 +7,6 @@
         <text class="location-text">{{ showLocation }}</text>
         <text class="location-arrow">▼</text>
       </view>
-      <!-- <view class="right-icons">
-        <view class="icon-bell">🔔</view>
-        <view class="icon-ai">🤖</view>
-      </view> -->
     </view>
 
     <!-- 邻里圈头部 -->
@@ -43,11 +39,12 @@
         <view
           class="category-tag"
           :class="{ active: currentTagId === item.tagId }"
+          :style="{ borderColor: item.color }"
           v-for="item in tagList"
           :key="item.tagId"
           @click="switchTag(item.tagId)"
         >
-          <text v-if="item.emoji">{{ item.emoji }}</text>
+          <text class="tag-icon">{{ getTagEmoji(item.tagId) }}</text>
           {{ item.name }}
         </view>
       </scroll-view>
@@ -55,63 +52,80 @@
 
     <!-- 帖子列表 -->
     <view class="posts-section">
-      <view class="posts-list" v-for="item in articleList" :key="item.articleId">
-        <!-- 帖子卡片 -->
-        <view class="post-card">
-          <view class="post-header">
-            <view class="post-type">
-              <text>{{ getTagEmoji(item.tagId) }}</text>
-              <text>{{ item.tagName }}</text>
-            </view>
-            <view class="post-location" v-if="item.area">
-              <text>📍</text>
-              <text>{{ item.area }}</text>
-            </view>
-          </view>
-
-          <view class="post-title">{{ item.title }}</view>
-          <view class="post-content">{{ item.content }}</view>
-
-          <!-- 图片占位（如有图片字段可扩展） -->
-          <view class="post-images" v-if="item.images && item.images.length">
-            <view
-              class="image-placeholder"
-              v-for="(img, idx) in item.images.slice(0, 3)"
-              :key="idx"
-            >
-              🖼️
-            </view>
-          </view>
-
-          <view class="post-meta">
-            <view class="meta-left">
-              <text>⏰ {{ formatTime(item.createTime) }}</text>
-              <text>👀 {{ item.viewCount || 0 }}浏览</text>
-              <text>💬 {{ item.commentCount || 0 }}回复</text>
-            </view>
-            <view class="meta-right">
-              <text>❤️ {{ item.likeCount || 0 }}</text>
-              <text>↗️</text>
-            </view>
-          </view>
-
-          <view class="post-footer">
-            <view class="author-info">
-              <view class="author-avatar">{{ item.authorAvatar || '👤' }}</view>
-              <view class="author-details">
-                <text class="author-name">{{ item.authorName || '邻居' }}</text>
-                <text class="author-badge">{{ item.authorBadge || '热心邻居' }}</text>
+      <!-- 下拉刷新 -->
+      <scroll-view
+        scroll-y
+        refresher-enabled
+        :refresher-triggered="refreshing"
+        @refresherrefresh="onRefresh"
+        style="height: 100%"
+      >
+        <view class="posts-list" v-for="item in articleList" :key="item.articleId">
+          <!-- 帖子卡片 -->
+          <view class="post-card">
+            <view class="post-header">
+              <view class="post-type" :style="{ borderColor: item.tagColor }">
+                <text class="tag-icon">{{ getTagEmoji(item.tagId) }}</text>
+                <text>{{ item.tagName }}</text>
+              </view>
+              <view class="post-location" v-if="item.area">
+                <text>📍</text>
+                <text>{{ item.area }}</text>
               </view>
             </view>
-            <view class="post-actions">
-              <!-- 删除按钮（仅自己可见） -->
-              <text v-if="item.isSelf" class="del-icon" @click.stop="handleDelete(item.articleId)"
-                >🗑️</text
+
+            <view @click="goToDetail(item.articleId)">
+              <view class="post-title">{{ item.title }}</view>
+              <view class="post-content">{{ item.content }}</view>
+            </view>
+
+            <!-- 图片占位（如有图片字段可扩展） -->
+            <view class="post-images" v-if="item.images && item.images.length">
+              <view
+                class="image-placeholder"
+                v-for="(img, idx) in item.images.slice(0, 3)"
+                :key="idx"
               >
+                🖼️
+              </view>
+            </view>
+
+            <view class="post-meta">
+              <view class="meta-left">
+                <text>⏰ {{ formatTime(item.createTime) }}</text>
+                <text>👀 {{ item.viewCount || 0 }}浏览</text>
+                <text>💬 {{ item.commentCount || 0 }}回复</text>
+              </view>
+              <view class="meta-right">
+                <view class="like-wrap" @click.stop="handleLike(item.articleId, item)">
+                  <image
+                    src="/static/icon/heart.svg"
+                    class="like-svg"
+                    :class="{ liked: item.isLiked }"
+                  />
+                  <text class="like-num">{{ item.likeCount || 0 }}</text>
+                </view>
+                <text>↗️</text>
+              </view>
+            </view>
+
+            <view class="post-footer">
+              <view class="author-info">
+                <image class="author-avatar" :src="item.avatar" model="aspectFill"></image>
+                <view class="author-details">
+                  <text class="author-name">{{ item.authorName || '邻居' }}</text>
+                </view>
+              </view>
+              <view class="post-actions">
+                <!-- 删除按钮（仅自己可见） -->
+                <text v-if="item.isSelf" class="del-icon" @click.stop="handleDelete(item.articleId)"
+                  >🗑️</text
+                >
+              </view>
             </view>
           </view>
         </view>
-      </view>
+      </scroll-view>
 
       <!-- 加载更多 -->
       <view class="load-more" v-if="loading">加载中...</view>
@@ -123,7 +137,13 @@
 
 <script setup>
 import { ref, onMounted, onUnmounted } from 'vue'
-import { getArticlePage, deleteArticle, getTagList } from '@/service/community.js'
+import {
+  getArticlePage,
+  deleteArticle,
+  getTagList,
+  likeOrCancel,
+  countTodayPosts,
+} from '@/service/community.js'
 import { getUserLocation } from '@/service/location.js'
 
 const { safeAreaInsets } = uni.getSystemInfoSync()
@@ -131,7 +151,7 @@ const { safeAreaInsets } = uni.getSystemInfoSync()
 // 定位显示
 const showLocation = ref('请选择地区')
 const onlineCount = ref(123)
-const todayNewCount = ref(18)
+const todayNewCount = ref(0)
 
 // 文章列表
 const articleList = ref([])
@@ -143,19 +163,26 @@ const size = ref(10)
 const tagList = ref([])
 const currentTagId = ref(null)
 
-// 标签emoji映射
-const tagEmojiMap = ref({
-  失物招领: '🧾',
-  生活碎片: '🏠',
-  邻里互助: '🤝',
-  社区活动: '🎉',
-  萌宠日常: '🐕',
-})
+const refreshing = ref(false) // 下拉刷新状态
+
+// 下拉刷新
+const onRefresh = () => {
+  refreshing.value = true
+  refreshList() // 调用你原来的刷新方法
+
+  fetchTodayNewCount()
+
+  // 刷新结束
+  setTimeout(() => {
+    refreshing.value = false
+  }, 800)
+}
 
 onMounted(() => {
   fetchUserLocation()
   fetchTagList()
   fetchArticleList()
+  fetchTodayNewCount()
 
   uni.$on('addressSelected', (addr) => {
     showLocation.value = addr.fullText || '请选择地区'
@@ -167,6 +194,16 @@ onUnmounted(() => {
   uni.$off('addressSelected')
 })
 
+// 获取今日新帖数量
+const fetchTodayNewCount = async () => {
+  try {
+    const res = await countTodayPosts()
+    todayNewCount.value = res.data || 0
+  } catch {
+    todayNewCount.value = 0
+  }
+}
+
 async function fetchUserLocation() {
   try {
     const res = await getUserLocation()
@@ -177,14 +214,23 @@ async function fetchUserLocation() {
 }
 
 const getTagEmoji = (tagId) => {
-  const tag = tagList.value.find((t) => t.tagId === tagId)
-  if (!tag) return '📌'
-  return tagEmojiMap.value[tag.name] || '📌'
+  const emojiMap = {
+    1: '🔍', // 失物招领
+    2: '📷', // 生活碎片
+    3: '🤝', // 邻里互助
+    4: '🍳', // 美食分享
+    5: '🐾', // 宠物日常
+    6: '📦', // 二手闲置
+    7: '🏠', // 房屋租赁
+    8: '🌿', // 绿植园艺
+  }
+  return emojiMap[tagId] || '📝'
 }
 
 const fetchTagList = async () => {
   try {
     const res = await getTagList()
+    console.log('标签', res)
     tagList.value = res.data || []
   } catch (err) {
     console.log('获取标签失败', err)
@@ -208,15 +254,15 @@ const fetchArticleList = async () => {
     })
 
     const records = res.data.records || []
+    console.log('getArticlePage', res)
 
     // 处理数据，添加模拟字段（实际应根据接口调整）
     const processed = records.map((item) => ({
       ...item,
-      authorName: item.authorName || '邻居',
-      authorBadge: item.authorBadge || (item.area || '社区') + '·热心邻居',
-      authorAvatar: item.authorAvatar || '👤',
+      authorName: item.nickName || '邻居',
+      authorAvatar: item.avatar || '👤',
       isSelf: item.userId === uni.getStorageSync('userInfo')?.userId,
-      images: item.images || (item.tagId === 1 ? [''] : []), // 模拟图片
+      images: item.img ? [item.img] : [],
     }))
 
     if (current.value === 1) {
@@ -240,10 +286,6 @@ const refreshList = () => {
   fetchArticleList()
 }
 
-const loadMore = () => {
-  fetchArticleList()
-}
-
 const formatTime = (timeStr) => {
   if (!timeStr) return '刚刚'
   // 简单格式化，可根据需要完善
@@ -263,8 +305,37 @@ const handleDelete = async (articleId) => {
   })
 }
 
+const handleLike = async (articleId, item) => {
+  try {
+    // 1. 调用点赞/取消点赞接口
+    await likeOrCancel(articleId)
+
+    // 2. 前端立即切换状态（不用等刷新，体验更好）
+    item.isLiked = !item.isLiked
+    if (item.isLiked) {
+      item.likeCount++
+    } else {
+      item.likeCount--
+    }
+  } catch (err) {
+    uni.showToast({
+      title: '操作失败',
+      icon: 'none',
+    })
+  }
+}
+
+const goToDetail = (articleId) => {
+  console.log('articleId', articleId)
+  uni.navigateTo({
+    url: `/pages/community/detail?articleId=${articleId}`,
+  })
+}
+
 const goToSelectAddress = () => {
-  uni.navigateTo({ url: '/pages/index/address' })
+  uni.navigateTo({
+    url: '/pages/index/address',
+  })
 }
 
 const goToPublish = () => {
@@ -424,23 +495,22 @@ const goToPublish = () => {
 }
 
 .category-tag {
-  display: inline-block;
-  padding: 8rpx 40rpx;
-  background: #ffffff;
+  display: inline-flex;
+  align-items: center;
+  padding: 8rpx 30rpx;
+  background: transparent;
+  border: 2rpx solid #ccc;
   border-radius: 40rpx;
   font-size: 28rpx;
   font-weight: 600;
-  color: #8f7a68;
-  border: 2rpx solid #f0e4d8;
+  color: #4a3a2e;
   margin-right: 10rpx;
-  box-shadow: 0 4rpx 8rpx -6rpx #d4b6a0;
   white-space: nowrap;
 }
-
 .category-tag.active {
   background: #b86b3f;
-  color: white;
-  border: none;
+  border-color: #b86b3f;
+  color: #fff;
 }
 
 /* 帖子列表 */
@@ -474,14 +544,15 @@ const goToPublish = () => {
 }
 
 .post-type {
-  background: #fde6d2;
-  padding: 6rpx 36rpx;
-  border-radius: 40rpx;
-  font-size: 26rpx;
-  font-weight: 600;
-  color: #b86b3f;
-  display: flex;
+  display: inline-flex;
   align-items: center;
+  padding: 8rpx 30rpx;
+  background: transparent;
+  border: 2rpx solid #ccc;
+  border-radius: 40rpx;
+  font-size: 28rpx;
+  font-weight: 600;
+  color: #4a3a2e;
   gap: 8rpx;
 }
 
@@ -561,6 +632,27 @@ const goToPublish = () => {
   font-size: 26rpx;
 }
 
+// 未点赞样式（灰色）
+.like-wrap {
+  display: flex;
+  align-items: center;
+  gap: 8rpx;
+}
+.like-svg {
+  width: 28rpx;
+  height: 28rpx;
+  // 未点赞：灰色
+  filter: grayscale(1) opacity(0.5);
+}
+.like-svg.liked {
+  // 已点赞：红色
+  filter: none;
+}
+.like-num {
+  font-size: 26rpx;
+  color: #b86b3f;
+}
+
 .post-footer {
   display: flex;
   align-items: center;
@@ -580,11 +672,7 @@ const goToPublish = () => {
   height: 72rpx;
   background: #fde6d2;
   border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 36rpx;
-  color: #b86b3f;
+  overflow: hidden;
 }
 
 .author-details {
