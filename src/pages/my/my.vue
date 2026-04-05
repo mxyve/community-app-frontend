@@ -85,7 +85,7 @@
           </view>
           <view class="neighbor-card" @click="goToComments">
             <text class="neighbor-icon">💬</text>
-            <text class="neighbor-number">12</text>
+            <text class="neighbor-number">{{ myComments }}</text>
             <text class="neighbor-title">我的评论</text>
           </view>
         </view>
@@ -135,7 +135,7 @@ import { ref } from 'vue'
 import { onShow } from '@dcloudio/uni-app'
 import { logout } from '@/service/user'
 import { useUserStore } from '@/stores/user'
-import { countMyLikeArticles, countMyPostArticles } from '@/service/community.js'
+import { countMyLikeArticles, countMyPostArticles, countMyComments } from '@/service/community.js'
 
 const { safeAreaInsets } = uni.getSystemInfoSync()
 const userStore = useUserStore()
@@ -143,6 +143,7 @@ const userStore = useUserStore()
 // 邻里圈统计数量
 const myPostCount = ref(0)
 const myLikeCount = ref(0)
+const myComments = ref(0)
 
 onShow(() => {
   const userInfo = uni.getStorageSync('userInfo')
@@ -168,6 +169,14 @@ const fetchMyCommunityCount = async () => {
     myLikeCount.value = res2.data || 0
   } catch {
     myLikeCount.value = 0
+  }
+
+  try {
+    // 我的点赞数量
+    const res3 = await countMyComments()
+    myComments.value = res3.data || 0
+  } catch {
+    myComments.value = 0
   }
 }
 

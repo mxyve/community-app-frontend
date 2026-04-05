@@ -111,3 +111,55 @@ export function countTodayPosts() {
     url: '/api/v1/community/article/count/today',
   })
 }
+
+/**
+ * 获取文章评论列表（树形）
+ */
+export function getCommentPage(data) {
+  return http({
+    method: 'Post',
+    url: '/api/v1/community/comment/pages',
+    data,
+  })
+}
+
+/**
+ * 发布评论/回复
+ */
+export function createComment(data) {
+  return http({
+    method: 'POST',
+    url: '/api/v1/community/comment',
+    data,
+  })
+}
+
+/**
+ * 删除评论
+ */
+export function deleteComment(commentId) {
+  return http({
+    method: 'DELETE',
+    url: `/api/v1/community/comment/${commentId}`,
+  })
+}
+
+/**
+ * 我的评论总数
+ */
+export function countMyComments() {
+  return http({
+    method: 'GET',
+    url: '/api/v1/community/comment/my/count',
+  })
+}
+
+/**
+ * 我的评论分页列表
+ */
+export function myCommentPage() {
+  return http({
+    method: 'GET',
+    url: '/api/v1/community/comment/my/page',
+  })
+}

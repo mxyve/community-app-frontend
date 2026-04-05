@@ -93,8 +93,8 @@
             <view class="post-meta">
               <view class="meta-left">
                 <text>⏰ {{ formatTime(item.createTime) }}</text>
-                <text>👀 {{ item.viewCount || 0 }}浏览</text>
-                <text>💬 {{ item.commentCount || 0 }}回复</text>
+                <text>👀 {{ item.viewCount || 0 }}</text>
+                <text>💬 {{ item.commentCount || 0 }}</text>
               </view>
               <view class="meta-right">
                 <view class="like-wrap" @click.stop="handleLike(item.articleId, item)">
