@@ -1,6 +1,5 @@
 <template>
   <view class="markdown-content">
-    <!-- 使用rich-text渲染简单markdown，复杂场景可引入mp-html或uParse -->
     <rich-text :nodes="parsedContent"></rich-text>
   </view>
 </template>
@@ -34,6 +33,9 @@ const parsedContent = computed(() => {
 .markdown-content {
   font-size: 28rpx;
   line-height: 1.6;
+  word-wrap: break-word;
+  word-break: break-all;
+  overflow-wrap: break-word;
 
   :deep(pre) {
     background: #f5f2f0;
@@ -48,10 +50,12 @@ const parsedContent = computed(() => {
     padding: 4rpx 8rpx;
     border-radius: 8rpx;
     font-family: monospace;
+    word-break: break-all;
   }
 
   :deep(.markdown-image) {
     max-width: 100%;
+    width: 100%;
     height: auto;
     border-radius: 16rpx;
     margin: 10rpx 0;
@@ -60,6 +64,17 @@ const parsedContent = computed(() => {
   :deep(a) {
     color: #b86b3f;
     text-decoration: underline;
+    word-break: break-all;
+  }
+
+  :deep(p) {
+    word-wrap: break-word;
+    word-break: break-word;
+  }
+
+  :deep(div) {
+    word-wrap: break-word;
+    word-break: break-word;
   }
 }
 </style>

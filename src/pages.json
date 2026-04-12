@@ -206,6 +206,22 @@
         "navigationBarTextStyle": "white",
         "navigationBarTitleText": "商家客服"
       }
+    },
+    {
+      "path": "pages/content/information/informationList",
+      "style": {
+        "navigationStyle": "custom",
+        "navigationBarTextStyle": "white",
+        "navigationBarTitleText": "资讯列表"
+      }
+    },
+    {
+      "path": "pages/content/information/informationDetail",
+      "style": {
+        "navigationStyle": "custom",
+        "navigationBarTextStyle": "white",
+        "navigationBarTitleText": "资讯详情"
+      }
     }
   ],
   "globalStyle": {
