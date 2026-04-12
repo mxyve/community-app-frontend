@@ -198,6 +198,14 @@
         "navigationBarTextStyle": "white",
         "navigationBarTitleText": "文章详情"
       }
+    },
+    {
+      "path": "pages/services/conversation/chat",
+      "style": {
+        "navigationStyle": "custom",
+        "navigationBarTextStyle": "white",
+        "navigationBarTitleText": "商家客服"
+      }
     }
   ],
   "globalStyle": {

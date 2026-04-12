@@ -188,7 +188,6 @@ const article = ref({})
 const commentList = ref([])
 const commentContent = ref('')
 const userInfo = ref(uni.getStorageSync('userInfo') || {})
-const replyPopup = ref(null)
 
 const showReplyPopup = ref(false) // 控制回复弹窗显示
 const replyToComment = ref(null) // 要回复的评论对象

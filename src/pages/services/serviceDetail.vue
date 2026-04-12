@@ -70,6 +70,10 @@
       <view class="btn-left" @click="handleCar">收藏</view>
       <view class="btn-right" @click="handleBook">立即预约</view>
     </view>
+
+    <view class="kf-btn" @click="handleContactService">
+      <image class="kf-icon" src="/static/icon/kf.svg" mode="aspectFit"></image>
+    </view>
   </view>
 </template>
 
@@ -77,6 +81,7 @@
 import { ref, onMounted } from 'vue'
 import { getServiceDetail } from '@/service/services.js'
 import { addCart } from '@/service/services.js'
+import { createSession, getUserSessions } from '@/service/conversation.js'
 
 const { safeAreaInsets } = uni.getSystemInfoSync()
 
@@ -115,6 +120,59 @@ const fetchDetail = async (id) => {
   if (detail.value.serviceArea) {
     const areaArr = JSON.parse(detail.value.serviceArea)
     serviceAreaText.value = areaArr.join('、')
+  }
+}
+
+/**
+ * 联系客服
+ * 1.先查询用户已有会话列表，看是否已存在与该商家的会话
+ * 2.如果没有，则创建新会话
+ * 3.跳转到聊天页面
+ */
+const handleContactService = async () => {
+  const merchantId = detail.value.merchantId
+  const merchantName = detail.value.merchantName
+
+  if (!merchantId) {
+    uni.showToast({ title: '商家信息错误', icon: 'none' })
+    return
+  }
+
+  uni.showLoading({ title: '加载中' })
+
+  try {
+    // 1.获取用户会话列表
+    const res = await getUserSessions(1, 100)
+    const sessionList = res.data?.records || []
+
+    // 2.查找是否已存在与该商家的会话
+    const existingSession = sessionList.find((session) => {
+      session.merchantId === merchantId
+    })
+
+    let sessionId
+    if (existingSession) {
+      // 已有会话，直接使用
+      sessionId = existingSession.id
+    } else {
+      // 没有会话，创建新会话
+      const createRes = await createSession({ merchantId })
+      sessionId = createRes.data?.id
+    }
+
+    if (sessionId) {
+      // 跳转到聊天页面
+      uni.navigateTo({
+        url: `/pages/services/conversation/chat?sessionId=${sessionId}&merchantId=${merchantId}&merchantName=${encodeURIComponent(merchantName || '商家客服')}`,
+      })
+    } else {
+      uni.showToast({ title: '获取会话失败', icon: 'none' })
+    }
+  } catch (err) {
+    console.error('联系客服失败：', err)
+    uni.showToast({ title: '联系客服失败，请稍后重试', icon: 'none' })
+  } finally {
+    uni.hideLoading()
   }
 }
 
@@ -338,6 +396,26 @@ const handleBook = () => {
     justify-content: center;
     font-size: 32rpx;
     font-weight: bold;
+  }
+}
+/* 客服悬浮按钮 */
+.kf-btn {
+  position: fixed;
+  right: 30rpx;
+  bottom: 180rpx;
+  width: 100rpx;
+  height: 100rpx;
+  background: linear-gradient(135deg, #ff5f3f, #ff3f1f);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 8rpx 20rpx rgba(255, 95, 63, 0.3);
+  z-index: 100;
+
+  .kf-icon {
+    width: 50rpx;
+    height: 50rpx;
   }
 }
 </style>
