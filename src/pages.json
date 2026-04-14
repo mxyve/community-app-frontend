@@ -44,6 +44,8 @@
     {
       "path": "pages/login/login",
       "style": {
+        "navigationStyle": "custom",
+        "navigationBarTextStyle": "white",
         "navigationBarTitleText": "登录"
       }
     },
@@ -221,6 +223,22 @@
         "navigationStyle": "custom",
         "navigationBarTextStyle": "white",
         "navigationBarTitleText": "资讯详情"
+      }
+    },
+    {
+      "path": "pages/my/services/conversationList",
+      "style": {
+        "navigationStyle": "custom",
+        "navigationBarTextStyle": "white",
+        "navigationBarTitleText": "客服消息"
+      }
+    },
+    {
+      "path": "pages/my/services/conversationDetail",
+      "style": {
+        "navigationStyle": "custom",
+        "navigationBarTextStyle": "white",
+        "navigationBarTitleText": "客服消息详情"
       }
     }
   ],

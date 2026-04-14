@@ -9,13 +9,7 @@
 
     <view class="divider"></view>
 
-    <!-- 公告区域 -->
-    <!-- <view class="notice-bar" @click="goToNoticeDetail">
-      <image class="notice-icon" src="/static/images/notice.png" mode="aspectFit"></image>
-      <text class="notice-label">社区公告：</text>
-      <text class="notice-content">{{ noticeContent }}</text>
-    </view> -->
-
+    <!-- 轮播图 -->
     <swiper
       class="banner-swiper"
       :indicator-dots="true"
@@ -39,27 +33,65 @@
       <view class="activity-grid">
         <view class="activity-item" @click="goToInformation">
           <view class="activity-icon">
-            <image src="/static/icon/trash.png" mode="aspectFit"></image>
+            <image src="/static/icon/trash.svg" mode="aspectFit"></image>
           </view>
           <text class="activity-name">垃圾分类</text>
         </view>
         <view class="activity-item" @click="goToInformation">
           <view class="activity-icon">
-            <image src="/static/icon/science.png" mode="aspectFit"></image>
+            <image src="/static/icon/science.svg" mode="aspectFit"></image>
           </view>
           <text class="activity-name">知识科普</text>
         </view>
         <view class="activity-item" @click="goToInformation">
           <view class="activity-icon">
-            <image src="/static/icon/electric.png" mode="aspectFit"></image>
+            <image src="/static/icon/electric.svg" mode="aspectFit"></image>
           </view>
           <text class="activity-name">家电安全</text>
         </view>
       </view>
     </view>
 
-    <view @click="goToservice">
-      <text>生活帮手：</text>
+    <!-- 生活帮手服务列表 -->
+    <view class="section">
+      <view class="section-header">
+        <text class="section-title">生活帮手</text>
+        <text class="section-more" @click="goToservice">更多→</text>
+      </view>
+
+      <!-- 服务列表 - 两列网格 -->
+      <view class="service-list">
+        <view
+          class="service-item"
+          v-for="item in serviceList"
+          :key="item.id"
+          @click="goToServiceDetail(item.id)"
+        >
+          <view class="service-card">
+            <view class="service-cover">
+              <text class="service-emoji">{{ getServiceEmoji(item.categoryId) }}</text>
+              <text class="like-icon" @click.stop="toggleLike(item.id)">
+                {{ item.isLike ? '❤️' : '🤍' }}
+              </text>
+            </view>
+            <view class="service-info">
+              <text class="service-name">{{ item.name }}</text>
+              <text class="service-subtitle">{{
+                item.subtitle || item.description?.substring(0, 20)
+              }}</text>
+              <view class="service-meta">
+                <text class="rating">⭐ {{ item.ratingScore || 4.5 }}</text>
+                <text class="sales">已售{{ item.monthlySales || 0 }}</text>
+              </view>
+              <text class="service-price">¥{{ item.basePrice }}起</text>
+            </view>
+          </view>
+        </view>
+      </view>
+
+      <!-- 加载状态 -->
+      <view class="load-more" v-if="serviceLoading">加载中...</view>
+      <view class="load-more" v-else-if="serviceList.length === 0">暂无服务</view>
     </view>
   </view>
 </template>
@@ -67,6 +99,7 @@
 <script setup>
 import { ref, onMounted, onUnmounted } from 'vue'
 import { getUserLocation } from '@/service/location.js'
+import { getServicePage } from '@/service/services.js'
 
 const { safeAreaInsets } = uni.getSystemInfoSync()
 
@@ -79,17 +112,73 @@ const bannerList = ref([
   { src: '/static/images/banner3.png' },
 ])
 
+// 服务列表相关
+const serviceList = ref([])
+const serviceLoading = ref(false)
+const userLocation = ref({
+  province: '',
+  city: '',
+  district: '',
+})
+
+// 服务emoji映射
+const serviceEmojiMap = {
+  1: '🔧', // 家政保洁
+  2: '🧹', // 家电维修
+  3: '🐕', // 宠物寄养
+  4: '👴', // 助老陪护
+  5: '🔓', // 开锁换锁
+  6: '🚗', // 洗车保养
+}
+
+// 获取服务emoji
+const getServiceEmoji = (categoryId) => {
+  return serviceEmojiMap[categoryId] || '📌'
+}
+
+// 获取服务列表（首页只显示前4条）
+async function fetchServiceList() {
+  serviceLoading.value = true
+  try {
+    const res = await getServicePage({
+      current: 1,
+      size: 4,
+      province: userLocation.value.province,
+      city: userLocation.value.city,
+      district: userLocation.value.district,
+    })
+
+    if (res.code === 200 && res.data) {
+      const records = res.data.records || []
+      serviceList.value = records.map((item) => ({
+        ...item,
+        isLike: false,
+      }))
+    }
+  } catch (err) {
+    console.error('获取服务列表失败', err)
+  } finally {
+    serviceLoading.value = false
+  }
+}
+
+// 收藏/取消收藏
+const toggleLike = (serviceId) => {
+  const item = serviceList.value.find((i) => i.id === serviceId)
+  if (item) item.isLike = !item.isLike
+}
+
+// 跳转到服务详情
+const goToServiceDetail = (serviceId) => {
+  uni.navigateTo({
+    url: `/pages/services/serviceDetail?id=${serviceId}`,
+  })
+}
+
 // 跳转到地址选择页面
 function goToSelectAddress() {
   uni.navigateTo({
     url: '/pages/index/address',
-  })
-}
-
-// 跳转到公告页面
-function goToNoticeDetail() {
-  uni.navigateTo({
-    url: '/pages/index/notice',
   })
 }
 
@@ -105,22 +194,47 @@ function goToservice() {
   })
 }
 
-// 获取最新位置
+// 获取最新位置（用于显示）
 async function fetchUserLocation() {
   try {
     const res = await getUserLocation()
-    showLocation.value = res.data.fullText || '请选择地区'
+    if (res.code === 200 && res.data) {
+      showLocation.value = res.data.fullText || '请选择地区'
+      console.log('showLocation用户位置', res.data)
+      userLocation.value = {
+        province: res.data.province || '',
+        city: res.data.city || '',
+        district: res.data.district || '',
+      }
+    }
   } catch (e) {
     showLocation.value = '请选择地区'
+    console.error('获取位置失败', e)
   }
 }
 
-// 页面显示时，接受上一页传回来的地址（非常重要）
-onMounted(() => {
-  fetchUserLocation()
-  // 监听页面显示，获取选择后的地址
-  uni.$on('addressSelected', (addressInfo) => {
+onMounted(async () => {
+  // 👇 加这一句，登录回来立刻获取位置
+  await fetchUserLocation()
+  await fetchServiceList()
+
+  // 监听地址更新
+  uni.$on('addressSelected', async (addressInfo) => {
     showLocation.value = addressInfo.fullText || '请选择地区'
+
+    userLocation.value = {
+      province: addressInfo.province || '',
+      city: addressInfo.city || '',
+      district: addressInfo.district || '',
+    }
+
+    await fetchServiceList()
+  })
+
+  uni.$on('loginSuccess', async () => {
+    console.log('登录成功，刷新位置')
+    await fetchUserLocation()
+    await fetchServiceList()
   })
 })
 
@@ -131,7 +245,6 @@ onUnmounted(() => {
 </script>
 
 <style lang="scss" scoped>
-// 引入颜色变量
 @import '@/uni.scss';
 
 .container {
@@ -177,41 +290,6 @@ onUnmounted(() => {
   height: 2rpx;
   background: #f0d4b8;
   margin: 2rpx 0rpx 2rpx 0rpx;
-  // width: calc(100% - 60rpx);
-}
-
-.notice-bar {
-  display: flex;
-  align-items: center;
-  height: 88rpx;
-  margin: 12rpx 30rpx 30rpx;
-  padding: 0 30rpx;
-  background: #fff;
-  border-radius: 24rpx;
-  box-shadow: 0 2rpx 10rpx rgba(196, 139, 102, 0.25);
-  max-width: 80%;
-
-  .notice-icon {
-    width: 40rpx;
-    height: 40rpx;
-    margin-right: 20rpx;
-  }
-
-  .notice-label {
-    font-size: 32rpx;
-    color: #c48b66;
-    font-weight: 600;
-    margin-right: 16rpx;
-  }
-
-  .notice-content {
-    flex: 1;
-    font-size: 28rpx;
-    color: #666;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-  }
 }
 
 .banner-swiper {
@@ -221,16 +299,20 @@ onUnmounted(() => {
   border-radius: 24rpx;
   overflow: hidden;
 }
+
 .banner-img {
   width: 100%;
   height: 100%;
 }
+
 ::v-deep .uni-swiper-dot {
   background: rgba(255, 255, 255, 0.5);
 }
+
 ::v-deep .uni-swiper-dot-active {
   background: #c48b66;
 }
+
 .section {
   padding: 0 30rpx 20rpx;
 
@@ -285,5 +367,86 @@ onUnmounted(() => {
       }
     }
   }
+}
+
+/* 服务列表 - 两列网格 */
+.service-list {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 24rpx;
+}
+
+.service-item {
+  .service-card {
+    background: #fff;
+    border-radius: 24rpx;
+    overflow: hidden;
+    box-shadow: 0 4rpx 12rpx rgba(0, 0, 0, 0.05);
+
+    .service-cover {
+      height: 160rpx;
+      background: #f9e0c7;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+
+      .service-emoji {
+        font-size: 64rpx;
+      }
+
+      .like-icon {
+        position: absolute;
+        top: 16rpx;
+        right: 16rpx;
+        font-size: 32rpx;
+      }
+    }
+
+    .service-info {
+      padding: 20rpx;
+      display: flex;
+      flex-direction: column;
+      gap: 8rpx;
+
+      .service-name {
+        font-size: 32rpx;
+        font-weight: bold;
+        color: #332b22;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+
+      .service-subtitle {
+        font-size: 24rpx;
+        color: #999;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+
+      .service-meta {
+        display: flex;
+        align-items: center;
+        gap: 20rpx;
+        font-size: 24rpx;
+        color: #666;
+      }
+
+      .service-price {
+        font-size: 32rpx;
+        font-weight: bold;
+        color: #d2691e;
+      }
+    }
+  }
+}
+
+.load-more {
+  text-align: center;
+  padding: 40rpx 0;
+  color: #999;
+  font-size: 28rpx;
 }
 </style>

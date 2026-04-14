@@ -59,6 +59,15 @@
             <text class="stat-number">1</text>
             <text class="stat-label">待服务</text>
           </view>
+          <view class="stat-card service-card" @click="goToConversationList">
+            <image
+              class="service-icon"
+              src="/static/icon/kf.svg"
+              mode="aspectFit"
+              style="width: 20px; height: 20px"
+            ></image>
+            <text class="stat-label">客服消息</text>
+          </view>
           <view class="stat-card" @click="goToReviews">
             <text class="stat-number">2</text>
             <text class="stat-label">我的评价</text>
@@ -195,6 +204,12 @@ function goToCollections() {
 function goToOrders() {
   uni.navigateTo({
     url: '/pages/my/services/orders',
+  })
+}
+
+function goToConversationList() {
+  uni.navigateTo({
+    url: '/pages/my/services/conversationList',
   })
 }
 
@@ -467,6 +482,19 @@ const handleQuitClick = () => {
 .stats-grid {
   display: flex;
   gap: 8px;
+  flex-wrap: nowrap;
+  overflow-x: auto;
+  padding-bottom: 4px;
+
+  /* 隐藏滚动条（美观） */
+  &::-webkit-scrollbar {
+    display: none;
+  }
+
+  .stat-card {
+    flex: 0 0 19%;
+    min-width: 19%;
+  }
 }
 
 .stat-card {

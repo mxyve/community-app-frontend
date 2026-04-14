@@ -32,7 +32,11 @@
         :class="{ self: msg.senderType === 0 }"
       >
         <!-- 头像 -->
-        <image class="avatar" :src="msg.senderAvatar || defaultAvatar" mode="aspectFill"></image>
+        <image
+          class="avatar"
+          :src="msg.senderType === 0 ? userAvatar : '/static/icon/kf.svg'"
+          mode="aspectFill"
+        ></image>
 
         <!-- 消息内容 -->
         <view class="message-content">
@@ -85,7 +89,7 @@ const loadingMore = ref(false)
 
 const inputText = ref('')
 const scrollTop = ref(0)
-const defaultAvatar = '/static/icon/user.png'
+const userAvatar = userStore.userInfo?.avatar || '/static/icon/user.png'
 
 onMounted(async () => {
   const pages = getCurrentPages()
@@ -102,10 +106,8 @@ onMounted(async () => {
     return
   }
 
-  // 第一次进入页面 → 强制加载最新消息
   await loadHistoryMessages()
   await markMessagesAsReadHandler()
-
   connectWebSocket()
 })
 
@@ -123,16 +125,11 @@ const loadHistoryMessages = async (isLoadMore = false) => {
     const res = await getHistoryMessages(sessionId.value, page, pageSize)
     const records = res.data || []
 
-    const formattedMessages = records.map((msg) => ({
-      ...msg,
-      createTime: msg.createTime,
-    }))
-
     if (isLoadMore) {
-      messageList.value = [...formattedMessages, ...messageList.value]
+      messageList.value = [...records, ...messageList.value]
       currentPage.value = page
     } else {
-      messageList.value = formattedMessages
+      messageList.value = records
       currentPage.value = 1
     }
 
@@ -154,6 +151,7 @@ const loadMoreMessages = () => {
   }
 }
 
+// 发送消息（修复版）
 const sendMessageHandler = async () => {
   const content = inputText.value.trim()
   if (!content) return
@@ -186,6 +184,7 @@ const sendMessageHandler = async () => {
       scrollTop.value = 99999
     }, 100)
   } catch (err) {
+    console.error('发送失败', err)
     uni.showToast({ title: '发送失败', icon: 'none' })
   }
 }
@@ -209,52 +208,39 @@ const goBack = () => {
   uni.navigateBack()
 }
 
-// ==================== WebSocket 正确版本 ====================
+// ==================== WebSocket ====================
 const socketTask = ref(null)
 
 function connectWebSocket() {
-  // 安全获取 userId（绝对不报错）
   const userInfo = userStore.userInfo || uni.getStorageSync('userInfo')
   const userId = userInfo?.userId
 
-  console.log('【最终 userId】', userId)
   if (!userId) {
     uni.showToast({ title: '请先登录', icon: 'none' })
     return
   }
 
-  // 关闭旧连接
   if (socketTask.value) {
     socketTask.value.close()
     socketTask.value = null
   }
 
-  // 创建连接
   socketTask.value = uni.connectSocket({
     url: `ws://127.0.0.1:8080/ws/app/chat/${userId}`,
   })
 
-  // ✅ 正确的 uni-app 小程序 WebSocket 写法
-  // 连接打开
   uni.onSocketOpen(() => {
     console.log('✅ 小程序 WebSocket 连接成功')
   })
 
-  // ✅ 收到消息（这里会收到后台推送！）
   uni.onSocketMessage((res) => {
-    console.log('【小程序收到消息】', res.data)
-
     try {
       const msg = JSON.parse(res.data)
-
-      // 只显示当前会话
       if (msg.sessionId == sessionId.value) {
         const exists = messageList.value.some((x) => x.id === msg.id)
         if (!exists) {
           messageList.value.push(msg)
         }
-
-        // 滚动到底
         setTimeout(() => {
           scrollTop.value = 999999
         }, 60)
@@ -264,12 +250,10 @@ function connectWebSocket() {
     }
   })
 
-  // 连接关闭
   uni.onSocketClose(() => {
     console.log('🔌 WebSocket 已断开')
   })
 
-  // 连接错误
   uni.onSocketError((err) => {
     console.error('WebSocket 错误', err)
   })

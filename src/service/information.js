@@ -15,7 +15,7 @@ export function getInformationPage(params) {
     method: 'GET',
     url: '/api/front/information/page',
     data: params,
-  })
+  }) 
 }
 
 /**
