@@ -389,7 +389,7 @@ const handleBook = () => {
   }
   .btn-right {
     flex: 2;
-    background: #ff5f3f;
+    background: #b86b3f;
     color: #fff;
     display: flex;
     align-items: center;
@@ -405,12 +405,12 @@ const handleBook = () => {
   bottom: 180rpx;
   width: 100rpx;
   height: 100rpx;
-  background: linear-gradient(135deg, #ff5f3f, #ff3f1f);
+  background: #e8d9cc;
   border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
-  box-shadow: 0 8rpx 20rpx rgba(255, 95, 63, 0.3);
+  box-shadow: 0 8rpx 20rpx rgba(184, 107, 63, 0.2);
   z-index: 100;
 
   .kf-icon {

@@ -38,7 +38,7 @@
         </view>
         <view class="stats-bar">
           <view class="stat-item">
-            <text class="stat-icon">👀</text>
+            <!-- <text class="stat-icon">👀</text> -->
             <text class="stat-num">{{ article.viewCount || 0 }}</text>
           </view>
           <view class="stat-item">
@@ -99,13 +99,13 @@
                 <view class="comment-user">{{ item.nickName }}</view>
                 <view class="comment-text">{{ item.content }}</view>
                 <view class="comment-meta">
-                  <text class="meta-like">❤️ {{ item.likeCount || 0 }}</text>
+                  <!-- <text class="meta-like">❤️ {{ item.likeCount || 0 }}</text> -->
                   <text class="meta-reply" @click="handleReplyComment(item)">回复</text>
                   <text
                     class="meta-delete"
                     v-if="item.userId === userInfo?.userId"
                     @click="handleDeleteComment(item.commentId)"
-                    >删除</text
+                    >🗑️</text
                   >
                 </view>
               </view>

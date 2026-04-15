@@ -463,7 +463,7 @@ const goBack = () => uni.navigateBack()
   }
 }
 .submit-btn {
-  background: #ff5f3f;
+  background: #b86b3f;
   color: #fff;
   text-align: center;
   padding: 30rpx;

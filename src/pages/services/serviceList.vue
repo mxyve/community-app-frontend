@@ -31,8 +31,18 @@
     <!-- 快捷分类 -->
     <view class="quick-category">
       <scroll-view class="category-scroll" scroll-x show-scrollbar="false">
+        <!-- 添加"全部"选项 -->
         <view
           class="category-item"
+          :class="{ active: currentCategoryId === null }"
+          @click="switchCategory(null)"
+        >
+          <text class="category-emoji">📋</text>
+          <text class="category-name">全部</text>
+        </view>
+        <view
+          class="category-item"
+          :class="{ active: currentCategoryId === item.id }"
           v-for="item in quickCategoryList"
           :key="item.id"
           @click="switchCategory(item.id)"
@@ -44,16 +54,16 @@
     </view>
 
     <!-- 新用户优惠 -->
-    <view class="promo-banner">
+    <!-- <view class="promo-banner">
       <view class="promo-content">
         <text class="promo-title">新用户首单立减</text>
         <text class="promo-subtitle">满50减20 · 限今日</text>
       </view>
       <view class="promo-btn" @click="handleClaim">立即领取</view>
-    </view>
+    </view> -->
 
     <!-- 排序筛选 -->
-    <view class="sort-tabs">
+    <!-- <view class="sort-tabs">
       <view class="sort-tab" :class="{ active: currentSort === '综合' }" @click="switchSort('综合')"
         >综合排序</view
       >
@@ -66,45 +76,55 @@
       <view class="sort-tab" :class="{ active: currentSort === '价格' }" @click="switchSort('价格')"
         >价格</view
       >
-    </view>
+    </view> -->
 
     <!-- 服务列表 -->
-    <view class="service-list">
-      <view
-        class="service-item"
-        v-for="item in serviceList"
-        :key="item.id"
-        @click="goToDetail(item.id)"
-      >
-        <view class="service-card">
-          <view class="service-cover">
-            <text class="service-emoji">{{ getServiceEmoji(item.categoryId) }}</text>
-            <text class="like-icon" @click.stop="toggleLike(item.id)">{{
+    <scroll-view
+      class="service-scroll"
+      scroll-y
+      refresher-enabled
+      :refresher-triggered="refresherTriggered"
+      @refresherrefresh="onRefresh"
+      @scrolltolower="loadMore"
+    >
+      <!-- 服务列表 -->
+      <view class="service-list">
+        <view
+          class="service-item"
+          v-for="item in serviceList"
+          :key="item.id"
+          @click="goToDetail(item.id)"
+        >
+          <view class="service-card">
+            <view class="service-cover">
+              <image class="cover-img" :src="item.coverImage" mode="aspectFill"></image>
+              <!-- <text class="like-icon" @click.stop="toggleLike(item.id)">{{
               item.isLike ? '❤️' : '🤍'
-            }}</text>
-          </view>
-          <view class="service-info">
-            <text class="service-name">{{ item.name }}</text>
-            <text class="service-subtitle">{{ item.subtitle }}</text>
-            <view class="service-meta">
-              <text class="rating">⭐ {{ item.ratingScore || 4.5 }}</text>
-              <text class="sales">已售{{ item.monthlySales || 0 }}</text>
+            }}</text> -->
             </view>
-            <text class="service-price">¥{{ item.basePrice }}起</text>
+            <view class="service-info">
+              <text class="service-name">{{ item.name }}</text>
+              <text class="service-subtitle">{{ item.subtitle }}</text>
+              <view class="service-meta">
+                <!-- <text class="rating">⭐ {{ item.ratingScore || 4.5 }}</text> -->
+                <text class="sales">已售{{ item.monthlySales || 0 }}</text>
+              </view>
+              <text class="service-price">¥{{ item.basePrice }}起</text>
+            </view>
           </view>
         </view>
-      </view>
 
-      <!-- 加载状态 -->
-      <view class="load-more" v-if="loading">加载中...</view>
-      <view class="load-more" v-else-if="!hasMore && serviceList.length === 0">暂无服务</view>
-      <view class="load-more" v-else-if="!hasMore && serviceList.length > 0">没有更多了</view>
-    </view>
+        <!-- 加载状态 -->
+        <view class="load-more" v-if="loading">加载中...</view>
+        <view class="load-more" v-else-if="!hasMore && serviceList.length === 0">暂无服务</view>
+        <view class="load-more" v-else-if="!hasMore && serviceList.length > 0">没有更多了</view>
+      </view>
+    </scroll-view>
   </view>
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, onUnmounted } from 'vue'
 import { getServicePage, getCategoryList } from '@/service/services.js'
 import { getUserLocation } from '@/service/location.js'
 
@@ -124,6 +144,9 @@ const keyword = ref('')
 // 数据列表
 const serviceList = ref([])
 const quickCategoryList = ref([])
+
+// 下拉刷新状态
+const refresherTriggered = ref(false)
 
 // 服务emoji映射
 const serviceEmojiMap = ref({
@@ -171,8 +194,8 @@ const fetchCategoryList = async () => {
 }
 
 // 获取服务列表
-const fetchServiceList = async () => {
-  if (loading.value || !hasMore.value) return
+const fetchServiceList = async (isRefresh = false) => {
+  if (loading.value || (!hasMore.value && !isRefresh)) return
   loading.value = true
 
   try {
@@ -186,22 +209,47 @@ const fetchServiceList = async () => {
     const records = res.data.records || []
     const processed = records.map((item) => ({
       ...item,
-      isLike: false, // 模拟收藏状态
+      isLike: false,
     }))
 
-    if (current.value === 1) {
+    if (current.value === 1 || isRefresh) {
       serviceList.value = processed
     } else {
       serviceList.value = [...serviceList.value, ...processed]
     }
 
-    console.log(serviceList)
     hasMore.value = records.length === size.value
-    if (hasMore.value) current.value++
+    if (hasMore.value && !isRefresh) current.value++
   } catch (err) {
     console.error('获取服务列表失败', err)
   } finally {
     loading.value = false
+  }
+}
+
+// 下拉刷新
+const onRefresh = async () => {
+  if (refresherTriggered.value) return
+
+  refresherTriggered.value = true
+
+  try {
+    // 重置分页参数
+    current.value = 1
+    hasMore.value = true
+
+    // 重新获取数据 - 传 true
+    await fetchServiceList(true)
+  } catch (error) {
+    console.error('刷新失败', error)
+    uni.showToast({
+      title: '刷新失败',
+      icon: 'none',
+    })
+  } finally {
+    setTimeout(() => {
+      refresherTriggered.value = false
+    }, 500)
   }
 }
 
@@ -271,12 +319,18 @@ onMounted(() => {
     refreshList() // 位置变了，刷新服务列表
   })
 })
+
+onUnmounted(() => {
+  uni.$off('addressSelected')
+})
 </script>
 
 <style lang="scss" scoped>
 .container {
   background: #faf5ef;
   min-height: 100vh;
+  display: flex;
+  flex-direction: column; /* 添加这行 */
   padding-bottom: 20rpx;
 }
 
@@ -392,6 +446,18 @@ onMounted(() => {
     align-items: center;
     gap: 12rpx;
     margin-right: 40rpx;
+    padding-bottom: 8rpx;
+    border-bottom: 4rpx solid transparent;
+    transition: all 0.2s ease;
+
+    &.active {
+      border-bottom-color: #d2691e;
+
+      .category-name {
+        color: #d2691e;
+        font-weight: bold;
+      }
+    }
   }
 
   .category-emoji {
@@ -487,10 +553,10 @@ onMounted(() => {
         justify-content: center;
         position: relative;
 
-        .service-emoji {
-          font-size: 64rpx;
+        .cover-img {
+          width: 100%;
+          height: 100%;
         }
-
         .like-icon {
           position: absolute;
           top: 16rpx;
@@ -541,5 +607,10 @@ onMounted(() => {
   padding: 40rpx 0;
   color: #999;
   font-size: 28rpx;
+}
+
+.service-scroll {
+  flex: 1;
+  min-height: 0;
 }
 </style>

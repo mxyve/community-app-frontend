@@ -69,10 +69,10 @@
         >
           <view class="service-card">
             <view class="service-cover">
-              <text class="service-emoji">{{ getServiceEmoji(item.categoryId) }}</text>
-              <text class="like-icon" @click.stop="toggleLike(item.id)">
+              <image class="cover-img" :src="item.coverImage" mode="aspectFill"></image>
+              <!-- <text class="like-icon" @click.stop="toggleLike(item.id)">
                 {{ item.isLike ? '❤️' : '🤍' }}
-              </text>
+              </text> -->
             </view>
             <view class="service-info">
               <text class="service-name">{{ item.name }}</text>
@@ -80,7 +80,7 @@
                 item.subtitle || item.description?.substring(0, 20)
               }}</text>
               <view class="service-meta">
-                <text class="rating">⭐ {{ item.ratingScore || 4.5 }}</text>
+                <!-- <text class="rating">⭐ {{ item.ratingScore || 4.5 }}</text> -->
                 <text class="sales">已售{{ item.monthlySales || 0 }}</text>
               </view>
               <text class="service-price">¥{{ item.basePrice }}起</text>
@@ -314,7 +314,7 @@ onUnmounted(() => {
 }
 
 .section {
-  padding: 0 30rpx 20rpx;
+  padding: 0 16rpx 20rpx;
 
   .section-header {
     display: flex;
@@ -369,77 +369,96 @@ onUnmounted(() => {
   }
 }
 
-/* 服务列表 - 两列网格 */
+/* 服务列表 - 修改这部分 */
 .service-list {
+  padding: 20rpx 16rpx;
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 24rpx;
+  width: 100%;
+  box-sizing: border-box;
 }
 
 .service-item {
-  .service-card {
-    background: #fff;
-    border-radius: 24rpx;
+  width: 100%;
+  min-width: 0; /* 防止内容溢出 */
+  box-sizing: border-box;
+}
+
+.service-card {
+  background: #fff;
+  border-radius: 24rpx;
+  overflow: hidden;
+  box-shadow: 0 4rpx 12rpx rgba(0, 0, 0, 0.05);
+  width: 100%;
+  min-width: 0; /* 防止内容溢出 */
+  box-sizing: border-box;
+}
+
+.service-cover {
+  height: 160rpx;
+  width: 100%;
+  background: #f9e0c7;
+  position: relative;
+  overflow: hidden;
+  border-radius: 24rpx 24rpx 0 0;
+
+  .cover-img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover; /* 关键：等比裁剪，不拉伸 */
+  }
+
+  .like-icon {
+    position: absolute;
+    top: 16rpx;
+    right: 16rpx;
+    font-size: 32rpx;
+    z-index: 10;
+  }
+}
+
+.service-info {
+  padding: 20rpx;
+  display: flex;
+  flex-direction: column;
+  gap: 8rpx;
+  width: 100%;
+  min-width: 0; /* 防止内容溢出 */
+  box-sizing: border-box;
+
+  .service-name {
+    font-size: 32rpx;
+    font-weight: bold;
+    color: #332b22;
     overflow: hidden;
-    box-shadow: 0 4rpx 12rpx rgba(0, 0, 0, 0.05);
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    width: 100%;
+  }
 
-    .service-cover {
-      height: 160rpx;
-      background: #f9e0c7;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      position: relative;
+  .service-subtitle {
+    font-size: 24rpx;
+    color: #999;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    width: 100%;
+  }
 
-      .service-emoji {
-        font-size: 64rpx;
-      }
+  .service-meta {
+    display: flex;
+    align-items: center;
+    gap: 20rpx;
+    font-size: 24rpx;
+    color: #666;
+    flex-wrap: wrap; /* 允许换行 */
+  }
 
-      .like-icon {
-        position: absolute;
-        top: 16rpx;
-        right: 16rpx;
-        font-size: 32rpx;
-      }
-    }
-
-    .service-info {
-      padding: 20rpx;
-      display: flex;
-      flex-direction: column;
-      gap: 8rpx;
-
-      .service-name {
-        font-size: 32rpx;
-        font-weight: bold;
-        color: #332b22;
-        overflow: hidden;
-        text-overflow: ellipsis;
-        white-space: nowrap;
-      }
-
-      .service-subtitle {
-        font-size: 24rpx;
-        color: #999;
-        overflow: hidden;
-        text-overflow: ellipsis;
-        white-space: nowrap;
-      }
-
-      .service-meta {
-        display: flex;
-        align-items: center;
-        gap: 20rpx;
-        font-size: 24rpx;
-        color: #666;
-      }
-
-      .service-price {
-        font-size: 32rpx;
-        font-weight: bold;
-        color: #d2691e;
-      }
-    }
+  .service-price {
+    font-size: 32rpx;
+    font-weight: bold;
+    color: #d2691e;
   }
 }
 

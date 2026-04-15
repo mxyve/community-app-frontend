@@ -48,17 +48,27 @@
         </view>
         <view class="stats-grid">
           <view class="stat-card" @click="goToCollections">
-            <text class="stat-number">3</text>
+            <image
+              class="service-icon"
+              src="/static/icon/collect.svg"
+              mode="aspectFit"
+              style="width: 20px; height: 20px"
+            ></image>
             <text class="stat-label">我的收藏</text>
           </view>
           <view class="stat-card" @click="goToOrders">
-            <text class="stat-number">3</text>
+            <image
+              class="service-icon"
+              src="/static/icon/order.svg"
+              mode="aspectFit"
+              style="width: 20px; height: 20px"
+            ></image>
             <text class="stat-label">全部订单</text>
           </view>
-          <view class="stat-card">
+          <!-- <view class="stat-card">
             <text class="stat-number">1</text>
             <text class="stat-label">待服务</text>
-          </view>
+          </view> -->
           <view class="stat-card service-card" @click="goToConversationList">
             <image
               class="service-icon"
@@ -68,10 +78,10 @@
             ></image>
             <text class="stat-label">客服消息</text>
           </view>
-          <view class="stat-card" @click="goToReviews">
+          <!-- <view class="stat-card" @click="goToReviews">
             <text class="stat-number">2</text>
             <text class="stat-label">我的评价</text>
-          </view>
+          </view> -->
         </view>
       </view>
 

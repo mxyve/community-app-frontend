@@ -31,6 +31,9 @@
       class="list-scroll"
       scroll-y
       @scrolltolower="loadMore"
+      @refresherrefresh="onRefresh"
+      :refresher-enabled="true"
+      :refresher-triggered="refresherTriggered"
       :style="{ height: scrollHeight + 'px' }"
     >
       <view class="information-list" v-if="informationList.length > 0">
@@ -107,6 +110,35 @@ const userLocation = ref({
   city: '',
   district: '',
 })
+
+const refresherTriggered = ref(false)
+
+// 下拉刷新方法
+async function onRefresh() {
+  if (refresherTriggered.value) return
+
+  refresherTriggered.value = true
+
+  try {
+    // 重置分页参数
+    pageNum.value = 1
+    hasMore.value = true
+
+    // 重新获取数据
+    await fetchInformationList(false)
+  } catch (error) {
+    console.error('刷新失败', error)
+    uni.showToast({
+      title: '刷新失败',
+      icon: 'none',
+    })
+  } finally {
+    // 关闭刷新动画
+    setTimeout(() => {
+      refresherTriggered.value = false
+    }, 500)
+  }
+}
 
 // 格式化日期
 function formatDate(dateStr) {
@@ -303,7 +335,17 @@ onMounted(async () => {
     width: 200rpx;
     height: 160rpx;
     flex-shrink: 0;
+    display: block; /* 添加这一行 */
+    vertical-align: middle; /* 添加这一行 */
 
+    /* 如果有 image 标签需要单独处理 */
+    image {
+      display: block;
+      width: 100%;
+      height: 100%;
+    }
+
+    /* placeholder 样式保持不变 */
     &.placeholder {
       background: #f0f0f0;
       display: flex;
@@ -329,9 +371,14 @@ onMounted(async () => {
       font-weight: bold;
       color: #332b22;
       margin-bottom: 12rpx;
+      line-height: 1.3;
+
+      /* 两行自动省略 */
       overflow: hidden;
       text-overflow: ellipsis;
-      white-space: nowrap;
+      display: -webkit-box;
+      -webkit-line-clamp: 2; /* 最多2行 */
+      -webkit-box-orient: vertical;
     }
 
     .card-desc {

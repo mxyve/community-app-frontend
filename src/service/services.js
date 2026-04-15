@@ -119,3 +119,21 @@ export function deleteCart(id) {
     url: `/api/v1/carts/delete/${id}`,
   })
 }
+
+/* ---------------- 订单支付相关 ----------------- */
+// 创建支付宝支付二维码
+export function createAlipayOrder(data) {
+  return http({
+    method: 'POST',
+    url: '/api/v1/orders/createPay',
+    data,
+  })
+}
+
+// 查询订单支付状态
+export function getPayStatus(orderNo) {
+  return http({
+    method: 'GET',
+    url: `/api/v1/orders/payStatus/${orderNo}`,
+  })
+}

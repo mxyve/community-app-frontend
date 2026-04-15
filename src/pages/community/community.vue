@@ -93,7 +93,7 @@
             <view class="post-meta">
               <view class="meta-left">
                 <text>⏰ {{ formatTime(item.createTime) }}</text>
-                <text>👀 {{ item.viewCount || 0 }}</text>
+                <!-- <text>👀 {{ item.viewCount || 0 }}</text> -->
                 <text>💬 {{ item.commentCount || 0 }}</text>
               </view>
               <view class="meta-right">
@@ -105,7 +105,7 @@
                   />
                   <text class="like-num">{{ item.likeCount || 0 }}</text>
                 </view>
-                <text>↗️</text>
+                <!-- <text>↗️</text> -->
               </view>
             </view>
 
@@ -286,10 +286,42 @@ const refreshList = () => {
   fetchArticleList()
 }
 
+// 格式化时间（将ISO时间转换为友好显示）
 const formatTime = (timeStr) => {
   if (!timeStr) return '刚刚'
-  // 简单格式化，可根据需要完善
-  return timeStr
+
+  const date = new Date(timeStr)
+  const now = new Date()
+  const diff = now - date
+
+  // 一分钟内
+  if (diff < 60 * 1000) {
+    return '刚刚'
+  }
+
+  // 一小时内
+  if (diff < 60 * 60 * 1000) {
+    return Math.floor(diff / (60 * 1000)) + '分钟前'
+  }
+
+  // 24小时内
+  if (diff < 24 * 60 * 60 * 1000) {
+    return Math.floor(diff / (60 * 60 * 1000)) + '小时前'
+  }
+
+  // 超过24小时，显示月日
+  const month = String(date.getMonth() + 1).padStart(2, '0')
+  const day = String(date.getDate()).padStart(2, '0')
+
+  // 如果是今年，不显示年份
+  const currentYear = now.getFullYear()
+  const year = date.getFullYear()
+
+  if (year === currentYear) {
+    return `${month}-${day}`
+  }
+
+  return `${year}-${month}-${day}`
 }
 
 const handleDelete = async (articleId) => {

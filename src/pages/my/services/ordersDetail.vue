@@ -13,8 +13,42 @@
 
     <!-- 订单状态 -->
     <view class="status-box">
-      <text class="status">{{ getStatusText(order.status) }}</text>
+      <view class="status-header">
+        <text class="status-placeholder"></text>
+        <text class="status">{{ getStatusText(order.status) }}</text>
+        <view
+          class="refresh-btn"
+          :class="{ disabled: order.status === 3 }"
+          @click="handleRefresh"
+          v-if="order.status !== 3"
+        >
+          <text class="refresh-icon">🔄</text>
+          <text class="refresh-text">刷新</text>
+        </view>
+      </view>
       <text class="desc" v-if="order.status === 1">等待商家接单服务</text>
+    </view>
+
+    <!-- ===================== 支付区域（新增） ===================== -->
+    <view class="pay-card" v-if="order.status === 3">
+      <view class="pay-title">支付宝扫码支付</view>
+      <view class="price">实付金额：¥{{ order.payAmount }}</view>
+
+      <!-- 二维码 -->
+      <view class="qrcode-box" v-if="qrCodeUrl">
+        <image :src="qrCodeUrl" mode="widthFix"></image>
+        <view class="tip">使用沙箱支付宝APP扫码支付</view>
+      </view>
+
+      <!-- 支付中 -->
+      <view class="paying" v-if="isPaying">
+        <text>⌛ 等待支付中...</text>
+      </view>
+
+      <!-- 支付成功 -->
+      <view class="success" v-if="paySuccess">
+        <text>✅ 支付成功，订单已完成</text>
+      </view>
     </view>
 
     <!-- 订单信息 -->
@@ -97,11 +131,17 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
-import { getOrderDetail } from '@/service/services.js'
+import { ref, onMounted, onUnmounted } from 'vue'
+import { getOrderDetail, createAlipayOrder, getPayStatus } from '@/service/services.js'
 
 const { safeAreaInsets } = uni.getSystemInfoSync()
 const order = ref({}) // 订单详情
+
+// ==================== 支付相关（新增） ====================
+const qrCodeUrl = ref('') // 支付宝二维码
+const isPaying = ref(false) // 正在支付
+const paySuccess = ref(false) // 支付成功
+let pollTimer = null // 轮询定时器
 
 onMounted(() => {
   // 获取页面传递的订单id
@@ -113,18 +153,30 @@ onMounted(() => {
 
 // 获取订单详情
 const fetchOrderDetail = async (id) => {
-  const res = await getOrderDetail(id)
-  order.value = res.data
+  try {
+    const res = await getOrderDetail(id)
+    order.value = res.data
+
+    // 如果是待付款，自动创建支付
+    if (res.data.status === 3 && !qrCodeUrl.value) {
+      createPayOrder()
+    }
+  } catch (err) {
+    uni.showToast({ title: '加载失败', icon: 'none' })
+  }
 }
 
 // 订单状态文字
 const getStatusText = (status) => {
   const map = {
-    0: '待付款',
     1: '待服务',
     2: '服务中',
-    3: '已完成',
-    4: '已取消/退款',
+    3: '待付款',
+    4: '已完成',
+    5: '取消申请中',
+    6: '已取消',
+    7: '退款中',
+    8: '已退款',
   }
   return map[status] || '未知状态'
 }
@@ -134,6 +186,78 @@ const formatTime = (time) => {
   if (!time) return ''
   return time.replace('T', ' ')
 }
+
+// ==================== 创建支付宝订单（新增） ====================
+const createPayOrder = async () => {
+  try {
+    const res = await createAlipayOrder({
+      orderNo: order.value.orderNo,
+    })
+    if (res.code === 200) {
+      // 生成二维码图片
+      qrCodeUrl.value =
+        'https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=' +
+        encodeURIComponent(res.data)
+      // 开始轮询支付状态
+      startPollPay()
+    }
+  } catch (e) {
+    uni.showToast({ title: '支付创建失败', icon: 'none' })
+  }
+}
+
+// ==================== 轮询查询支付状态（新增） ====================
+const startPollPay = () => {
+  isPaying.value = true
+
+  pollTimer = setInterval(async () => {
+    try {
+      const res = await getPayStatus(order.value.orderNo)
+      if (res.data === true) {
+        // 支付成功
+        paySuccess.value = true
+        isPaying.value = false
+        order.value.status = 4 // 改成已完成
+        clearInterval(pollTimer)
+      }
+    } catch (e) {
+      console.log('查询支付状态失败')
+    }
+  }, 5000)
+}
+
+// 添加刷新方法
+const handleRefresh = () => {
+  uni.showLoading({ title: '刷新中...' })
+
+  // 获取订单id
+  const pages = getCurrentPages()
+  const currentPage = pages[pages.length - 1]
+  const id = currentPage.options.id
+
+  if (id) {
+    // 清空二维码，重新获取
+    qrCodeUrl.value = ''
+    paySuccess.value = false
+    isPaying.value = false
+    if (pollTimer) clearInterval(pollTimer)
+
+    fetchOrderDetail(id)
+
+    setTimeout(() => {
+      uni.hideLoading()
+      uni.showToast({ title: '刷新成功', icon: 'success' })
+    }, 500)
+  } else {
+    uni.hideLoading()
+    uni.showToast({ title: '刷新失败', icon: 'none' })
+  }
+}
+
+// 页面销毁清除定时器
+onUnmounted(() => {
+  if (pollTimer) clearInterval(pollTimer)
+})
 
 function goBack() {
   uni.navigateBack()
@@ -169,18 +293,59 @@ function goBack() {
 }
 
 /* 订单状态 */
+/* 订单状态 */
 .status-box {
   background: #fff;
   padding: 30rpx;
-  text-align: center;
   margin-bottom: 20rpx;
+
+  .status-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 10rpx;
+    position: relative;
+  }
+
+  .status-placeholder {
+    width: 100rpx; /* 与刷新按钮宽度一致，保持平衡 */
+    visibility: hidden;
+  }
+
   .status {
     font-size: 40rpx;
     font-weight: bold;
     color: #ff9500;
-    display: block;
-    margin-bottom: 10rpx;
+    flex: 1;
+    text-align: center;
   }
+
+  .refresh-btn {
+    display: flex;
+    align-items: center;
+    gap: 8rpx;
+    padding: 8rpx 16rpx;
+    background: #f5f0ea;
+    border-radius: 30rpx;
+    width: 100rpx;
+    justify-content: center;
+
+    .refresh-icon {
+      font-size: 28rpx;
+      color: #b86b3f;
+    }
+
+    .refresh-text {
+      font-size: 24rpx;
+      color: #b86b3f;
+    }
+
+    &.disabled {
+      opacity: 0.5;
+      pointer-events: none;
+    }
+  }
+
   .desc {
     font-size: 26rpx;
     color: #999;
@@ -227,5 +392,46 @@ function goBack() {
   font-size: 28rpx;
   color: #666;
   line-height: 1.6;
+}
+/* ==================== 支付样式 ==================== */
+.pay-card {
+  background: #fff;
+  margin: 0 30rpx 20rpx;
+  border-radius: 20rpx;
+  padding: 30rpx;
+  text-align: center;
+}
+.pay-title {
+  font-size: 32rpx;
+  font-weight: bold;
+  margin-bottom: 20rpx;
+  color: #d2691e;
+}
+.price {
+  font-size: 36rpx;
+  color: #ff5f3f;
+  font-weight: bold;
+  margin-bottom: 30rpx;
+}
+.qrcode-box image {
+  width: 300rpx;
+  height: 300rpx;
+  margin: 0 auto;
+}
+.qrcode-box .tip {
+  font-size: 24rpx;
+  color: #999;
+  margin-top: 10rpx;
+}
+.paying {
+  font-size: 28rpx;
+  color: #007aff;
+  padding: 20rpx;
+}
+.success {
+  font-size: 30rpx;
+  color: #06c160;
+  font-weight: bold;
+  padding: 20rpx;
 }
 </style>

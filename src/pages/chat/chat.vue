@@ -6,16 +6,16 @@
     <!-- 智能助理区域 -->
     <view class="assistant-header">
       <text class="assistant-title">智能助理</text>
-      <text class="assistant-status">8位在线 →</text>
+      <!-- <text class="assistant-status">8位在线 →</text> -->
     </view>
-    <view class="assistant-icons">
+    <!-- <view class="assistant-icons">
       <view class="assistant-item" v-for="item in assistantList" :key="item.label">
         <view class="assistant-icon">
           <image :src="item.icon" mode="aspectFit"></image>
         </view>
         <text class="assistant-label">{{ item.label }}</text>
       </view>
-    </view>
+    </view> -->
 
     <!-- 开始新对话按钮 -->
     <view class="new-chat-btn" @click="handleNewChat">
@@ -30,41 +30,49 @@
     </view>
 
     <!-- 会话列表 -->
-    <view class="session-list" v-if="sessionList.length > 0">
-      <text class="list-title">历史对话</text>
+    <scroll-view
+      class="session-scroll"
+      scroll-y
+      refresher-enabled
+      :refresher-triggered="refresherTriggered"
+      @refresherrefresh="onRefresh"
+    >
+      <view class="session-list" v-if="sessionList.length > 0">
+        <text class="list-title">历史对话</text>
 
-      <!-- 左滑删除 -->
-      <uni-swipe-action v-for="item in sessionList" :key="item.id" :auto-close="true">
-        <uni-swipe-action-item
-          :right-options="[{ text: '删除', type: 'error' }]"
-          @click="handleDeleteSession(item.id)"
-        >
-          <view class="session-item" @click="openChat(item)">
-            <view class="left">
-              <image class="avatar" src="/static/icon/robot.png"></image>
-              <view class="info">
-                <text class="title">{{ item.title }}</text>
-                <text class="lastMsg">
-                  {{
-                    (item.lastMessage || '').length > 22
-                      ? (item.lastMessage || '').slice(0, 22) + '...'
-                      : item.lastMessage || ''
-                  }}
-                </text>
+        <!-- 左滑删除 -->
+        <uni-swipe-action v-for="item in sessionList" :key="item.id" :auto-close="true">
+          <uni-swipe-action-item
+            :right-options="[{ text: '删除', type: 'error' }]"
+            @click="handleDeleteSession(item.id)"
+          >
+            <view class="session-item" @click="openChat(item)">
+              <view class="left">
+                <image class="avatar" src="/static/icon/robot.png"></image>
+                <view class="info">
+                  <text class="title">{{ item.title }}</text>
+                  <text class="lastMsg">
+                    {{
+                      (item.lastMessage || '').length > 22
+                        ? (item.lastMessage || '').slice(0, 22) + '...'
+                        : item.lastMessage || ''
+                    }}
+                  </text>
+                </view>
+              </view>
+              <view class="tag">
+                <text>{{ item.agentType === 'normal' ? '通用' : '教育' }}</text>
               </view>
             </view>
-            <view class="tag">
-              <text>{{ item.agentType === 'normal' ? '通用' : '教育' }}</text>
-            </view>
-          </view>
-        </uni-swipe-action-item>
-      </uni-swipe-action>
-    </view>
+          </uni-swipe-action-item>
+        </uni-swipe-action>
+      </view>
 
-    <!-- 空状态 -->
-    <view class="empty" v-else>
-      <text>暂无对话记录</text>
-    </view>
+      <!-- 空状态 -->
+      <view class="empty" v-else>
+        <text>暂无对话记录</text>
+      </view>
+    </scroll-view>
   </view>
 </template>
 
@@ -72,10 +80,15 @@
 import { ref, onMounted } from 'vue'
 import { getSessionList, createSession, deleteSession } from '@/service/session.js'
 
-const { safeAreaInsets } = uni.getSystemInfoSync()
+const { safeAreaInsets, windowHeight } = uni.getSystemInfoSync()
 
 const sessionList = ref([]) // 会话列表
 const loading = ref(false)
+
+// 计算滚动区域高度（减去顶部元素高度）
+const scrollHeight = ref(windowHeight - 400)
+// 下拉刷新状态
+const refresherTriggered = ref(false)
 
 // 获取会话列表
 const fetchSessions = async () => {
@@ -85,6 +98,10 @@ const fetchSessions = async () => {
     sessionList.value = res.data.records || []
   } catch (err) {
     console.error(err)
+    uni.showToast({
+      title: '加载失败',
+      icon: 'none',
+    })
   } finally {
     loading.value = false
   }
@@ -115,6 +132,29 @@ const assistantList = [
   { label: '回收助手', icon: '/static/icon/robot.png' },
   { label: '宠物助手', icon: '/static/icon/robot.png' },
 ]
+
+// 下拉刷新方法
+const onRefresh = async () => {
+  if (refresherTriggered.value) return
+
+  refresherTriggered.value = true
+
+  try {
+    // 重新获取会话列表
+    await fetchSessions()
+  } catch (error) {
+    console.error('刷新失败', error)
+    uni.showToast({
+      title: '刷新失败',
+      icon: 'none',
+    })
+  } finally {
+    // 关闭刷新动画
+    setTimeout(() => {
+      refresherTriggered.value = false
+    }, 500)
+  }
+}
 
 // 删除会话
 const handleDeleteSession = async (sessionId) => {
@@ -147,6 +187,8 @@ onMounted(() => {
 .container {
   background: $bg-primary;
   min-height: 100vh;
+  display: flex;
+  flex-direction: column;
 }
 
 .loc-text {
@@ -335,5 +377,17 @@ onMounted(() => {
   padding: 60rpx 0;
   color: #ccc;
   font-size: 26rpx;
+}
+
+/* 会话滚动区域 - 使用 flex 自动撑开 */
+.session-scroll {
+  flex: 1;
+  min-height: 0; /* 关键：防止 flex 子项溢出 */
+}
+
+/* 确保内容可以滚动 */
+.session-list {
+  padding: 30rpx;
+  padding-bottom: calc(30rpx + env(safe-area-inset-bottom));
 }
 </style>

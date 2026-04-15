@@ -47,7 +47,7 @@
       </view>
 
       <!-- 图片上传区域 (模拟杂志风格) -->
-      <view class="card">
+      <!-- <view class="card">
         <view class="card-header">
           <text class="card-title">图片</text>
           <text class="card-desc">可选，最多9张</text>
@@ -64,7 +64,7 @@
             </view>
           </view>
         </view>
-      </view>
+      </view> -->
 
       <!-- 标签选择 - 杂志卡片风格 -->
       <view class="card">
