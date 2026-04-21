@@ -7,23 +7,11 @@ export const getMessageList = (sessionId) => {
     url: `/api/v1/messages/session/${sessionId}`,
   })
 }
-
-// 流式接口
-export const streamChat = (data, onChunk) => {
-  return new Promise((resolve, reject) => {
-    uni.request({
-      url: '/api/v1/messages/stream',
-      method: 'POST',
-      header: {
-        'Content-Type': 'application/json',
-        Accept: 'text/event-stream',
-      },
-      data,
-      enableChunked: true,
-      success(res) {
-        resolve(res.data)
-      },
-      fail: reject,
-    })
+// 上传图片
+export const uploadChatImage = (filePath) => {
+  return uni.uploadFile({
+    url: '/api/v1/messages/me/image/chat',
+    filePath: filePath,
+    name: 'files',
   })
 }

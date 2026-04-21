@@ -26,16 +26,18 @@
     <!-- 输入框组件 -->
     <ChatInput
       :sending="sending"
+      :selectedImages="selectedImages"
       @send="handleSend"
       @camera="handleCamera"
-      @attachment="handleAttachment"
+      @album="handleAlbum"
+      @removeImage="removeImage"
     />
   </view>
 </template>
 
 <script setup>
 import { ref, onMounted, nextTick } from 'vue'
-import { getMessageList } from '@/service/message.js'
+import { getMessageList, uploadChatImage } from '@/service/message.js'
 import { streamChat } from '@/service/streamChat.js'
 import ChatMessageList from '@/components/ChatMessageList.vue'
 import ChatInput from '@/components/ChatInput.vue'
@@ -48,6 +50,9 @@ const sending = ref(false)
 const loadingMore = ref(false)
 const scrollTop = ref(0)
 const currentPage = ref(1)
+
+// 选中待发送的图片
+const selectedImages = ref([])
 
 function goBack() {
   uni.navigateBack()
@@ -87,21 +92,45 @@ const loadMore = () => {
   }
 }
 
-// 发送消息
-// 发送消息
+// 发送消息（支持文字 + 多图）
 const handleSend = async (data) => {
   const { content, features } = data
+  const text = content || ''
 
-  // 添加用户消息到列表
+  // 无内容无图片不发送
+  if (!text && selectedImages.value.length === 0) return
+  if (sending.value) return
+
+  // ----------------------
+  // 第一步：批量上传所有图片
+  // ----------------------
+  let imageUrls = []
+  if (selectedImages.value.length > 0) {
+    uni.showLoading({ title: '图片上传中...' })
+    try {
+      const uploadPromises = selectedImages.value.map((filePath) => uploadChatImage(filePath))
+      const uploadResults = await Promise.all(uploadPromises)
+      imageUrls = uploadResults.map((res) => JSON.parse(res.data).data[0])
+    } catch (err) {
+      uni.hideLoading()
+      uni.showToast({ icon: 'none', title: '图片上传失败' })
+      return
+    }
+    uni.hideLoading()
+  }
+
+  // ----------------------
+  // 第二步：组装消息
+  // ----------------------
   const userMessage = {
     id: Date.now(),
     role: 'user',
-    content: content,
+    content: text,
+    imageUrls: imageUrls,
     createTime: new Date().getTime(),
   }
   messageList.value.push(userMessage)
 
-  // 创建临时AI消息用于流式渲染
   const aiMessage = {
     id: Date.now() + 1,
     role: 'assistant',
@@ -111,82 +140,73 @@ const handleSend = async (data) => {
   }
   messageList.value.push(aiMessage)
 
-  // 滚动到底部
-  nextTick(() => {
-    scrollTop.value = 999999
-  })
-
+  nextTick(() => (scrollTop.value = 999999))
   sending.value = true
 
+  // ----------------------
+  // 第三步：发送流式请求
+  // ----------------------
   try {
-    // 调用流式接口
     await streamChat(
       {
         sessionId: sessionId.value,
-        content: content,
+        content: text,
         features: features,
+        attachments: imageUrls.map((url) => ({ type: 'image', url })),
       },
-      // 消息回调 - 每收到一个chunk就更新
       (chunk) => {
-        console.log('收到chunk:', chunk)
-        // 追加内容
         aiMessage.content += chunk.content || ''
-        // 触发视图更新 - 直接修改对象属性已经触发响应式
-        // 但为了保险，可以重新赋值
         messageList.value = [...messageList.value]
-
-        // 滚动到底部
-        nextTick(() => {
-          scrollTop.value = 999999
-        })
+        nextTick(() => (scrollTop.value = 999999))
       },
-      // 错误回调
       (error) => {
-        console.error('Stream error:', error)
-        aiMessage.content = '抱歉，发生了错误，请重试。'
+        aiMessage.content = '抱歉，发生错误'
         aiMessage.isStreaming = false
         sending.value = false
         messageList.value = [...messageList.value]
       },
-      // 完成回调
       () => {
-        console.log('流式传输完成')
         aiMessage.isStreaming = false
         sending.value = false
         messageList.value = [...messageList.value]
+        // 发送完毕清空图片
+        selectedImages.value = []
       },
     )
   } catch (error) {
-    console.error('Send error:', error)
-    aiMessage.content = '抱歉，发生了错误，请重试。'
+    aiMessage.content = '抱歉，发生错误'
     aiMessage.isStreaming = false
     sending.value = false
     messageList.value = [...messageList.value]
+    selectedImages.value = []
   }
 }
 
 // 拍照
 const handleCamera = () => {
   uni.chooseImage({
-    count: 1,
+    count: 9 - selectedImages.value.length,
+    sourceType: ['camera'],
     success: (res) => {
-      const tempFilePaths = res.tempFilePaths
-      // 处理图片上传
-      console.log('选择图片:', tempFilePaths)
+      selectedImages.value = [...selectedImages.value, ...res.tempFilePaths]
     },
   })
 }
 
-// 附件
-const handleAttachment = () => {
+// 相册
+const handleAlbum = () => {
   uni.chooseImage({
-    count: 9,
+    count: 9 - selectedImages.value.length,
+    sourceType: ['album'],
     success: (res) => {
-      const tempFilePaths = res.tempFilePaths
-      // 处理附件上传
-      console.log('选择附件:', tempFilePaths)
+      selectedImages.value = [...selectedImages.value, ...res.tempFilePaths]
     },
   })
+}
+
+// 删除选中的图片
+const removeImage = (idx) => {
+  selectedImages.value.splice(idx, 1)
 }
 </script>
 
@@ -196,6 +216,7 @@ const handleAttachment = () => {
   height: 100vh;
   display: flex;
   flex-direction: column;
+  overflow: hidden; /* 防止整体滚动 */
 }
 
 .header {
@@ -205,7 +226,7 @@ const handleAttachment = () => {
   background: #faf5ef;
   gap: 20rpx;
   border-bottom: 2rpx solid #f0d4b8;
-  flex-shrink: 0;
+  flex-shrink: 0; /* 防止被压缩 */
 
   .back-icon {
     width: 36rpx;
