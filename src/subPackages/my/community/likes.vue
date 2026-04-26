@@ -171,7 +171,7 @@ const refreshList = () => {
 // 跳详情
 const goToDetail = (articleId) => {
   uni.navigateTo({
-    url: `/pages/community/detail?articleId=${articleId}`,
+    url: `/subPackages/community/detail?articleId=${articleId}`,
   })
 }
 

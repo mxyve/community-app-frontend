@@ -63,7 +63,7 @@ const onRefresh = async () => {
 // 跳转到文章详情
 const goToArticle = (articleId) => {
   uni.navigateTo({
-    url: `/pages/community/detail?articleId=${articleId}`,
+    url: `/subPackages/community/detail?articleId=${articleId}`,
   })
 }
 

@@ -70,7 +70,7 @@ const loadSessionList = async () => {
 // 进入聊天页
 const goToChat = (item) => {
   uni.navigateTo({
-    url: `/pages/my/services/conversationDetail?sessionId=${item.id}&merchantId=${item.merchantId}&merchantName=商家客服`,
+    url: `/subPackages/my/services/conversationDetail?sessionId=${item.id}&merchantId=${item.merchantId}&merchantName=商家客服`,
   })
 }
 

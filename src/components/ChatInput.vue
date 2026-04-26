@@ -28,14 +28,24 @@
       </view>
     </view>
 
-    <!-- 输入行：加号 + 输入框 + 发送 -->
+    <!-- 输入行 -->
     <view class="input-row">
       <!-- 加号按钮 -->
       <view class="plus-icon" @click="showToolPanel = !showToolPanel">
         <text class="plus">+</text>
       </view>
 
-      <view class="text-input-wrapper">
+      <!-- 语音/键盘切换按钮 -->
+      <view class="voice-keyboard-toggle" @click="toggleInputMode">
+        <image
+          :src="inputMode === 'text' ? '/static/icon/voice_input.svg' : '/static/icon/keyboard.svg'"
+          mode="aspectFit"
+          class="toggle-icon"
+        />
+      </view>
+
+      <!-- 文字输入模式 -->
+      <view class="text-input-wrapper" v-if="inputMode === 'text'">
         <input
           type="text"
           v-model="inputText"
@@ -45,10 +55,22 @@
         />
       </view>
 
+      <!-- 语音输入模式 -->
+      <view
+        v-else
+        class="voice-input-wrapper"
+        @touchstart="startRecord"
+        @touchend="stopRecord"
+        @touchcancel="stopRecord"
+      >
+        <text class="voice-placeholder">按住 说话</text>
+      </view>
+
+      <!-- 发送按钮 -->
       <view
         class="send-button"
-        :class="{ disabled: (inputText.length === 0 && selectedImages.length === 0) || sending }"
-        @click="handleSend"
+        :class="{ disabled: sending }"
+        @click="inputMode === 'text' ? handleSend() : sendVoiceMessage()"
       >
         <image src="/static/icon/send.png" mode="aspectFit"></image>
       </view>
@@ -71,8 +93,6 @@
 <script setup>
 import { ref } from 'vue'
 
-const showToolPanel = ref(false) // 加号面板显示
-
 const props = defineProps({
   sending: {
     type: Boolean,
@@ -89,8 +109,70 @@ const features = ref({
   deepThink: false,
 })
 
+// 输入模式：'text' 文字输入 / 'voice' 语音输入
+const inputMode = ref('text')
+const showToolPanel = ref(false)
+
+// 录音相关
+const recorderManager = uni.getRecorderManager()
+const isRecording = ref(false)
+const recordedAudioBase64 = ref('')
+
+// 切换输入模式
+const toggleInputMode = () => {
+  inputMode.value = inputMode.value === 'text' ? 'voice' : 'text'
+}
+
+// 开始录音
+const startRecord = () => {
+  isRecording.value = true
+  uni.showToast({ icon: 'none', title: '录音中...', duration: 60000 })
+  recorderManager.start({
+    sampleRate: 16000,
+    format: 'pcm', // 改为 pcm 格式
+    numberOfChannels: 1, // 单声道
+    frameSize: 1,
+  })
+}
+
+// 结束录音 → 保存音频
+const stopRecord = () => {
+  if (!isRecording.value) return
+  isRecording.value = false
+  uni.hideToast()
+
+  recorderManager.stop()
+  recorderManager.onStop((res) => {
+    uni.getFileSystemManager().readFile({
+      filePath: res.tempFilePath,
+      encoding: 'base64',
+      success: (file) => {
+        recordedAudioBase64.value = file.data
+        uni.showToast({ icon: 'none', title: '录音完成，点击发送', duration: 2000 })
+      },
+    })
+  })
+}
+
+// 发送语音消息
+const sendVoiceMessage = () => {
+  if (!recordedAudioBase64.value) {
+    uni.showToast({ icon: 'none', title: '请先录音' })
+    return
+  }
+  if (props.sending) return
+
+  emit('send', {
+    content: '',
+    features: features.value,
+    audio: recordedAudioBase64.value,
+  })
+  recordedAudioBase64.value = ''
+  // 录音发送后切换回文字模式
+  inputMode.value = 'text'
+}
+
 const handleSend = () => {
-  // 只要有文字 或 有图片 就能发送
   const hasText = inputText.value.trim().length > 0
   const hasImage = props.selectedImages.length > 0
 
@@ -104,10 +186,12 @@ const handleSend = () => {
 }
 
 const handleCamera = () => {
+  showToolPanel.value = false
   emit('camera')
 }
 
 const handleAlbum = () => {
+  showToolPanel.value = false
   emit('album')
 }
 
@@ -146,6 +230,27 @@ const removeImage = (idx) => {
   }
 }
 
+.input-area {
+  background: #ffffff;
+  border-top: 2rpx solid #f0e0d2;
+  border-radius: 32rpx 32rpx 0 0;
+  padding: 20rpx 30rpx 30rpx;
+  padding-bottom: calc(30rpx + env(safe-area-inset-bottom));
+  display: flex;
+  flex-direction: column;
+  gap: 20rpx;
+  box-shadow: 0 -6rpx 20rpx -12rpx #a6897a;
+  flex-shrink: 0;
+  position: relative;
+  z-index: 10;
+}
+
+.input-row {
+  display: flex;
+  align-items: center;
+  gap: 12rpx;
+}
+
 /* 加号按钮 */
 .plus-icon {
   width: 60rpx;
@@ -155,55 +260,28 @@ const removeImage = (idx) => {
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 40rpx;
-  color: #666;
+  flex-shrink: 0;
+
+  .plus {
+    font-size: 48rpx;
+    color: #b86b3f;
+    line-height: 1;
+  }
 }
 
-/* 工具面板 */
-.tool-panel {
-  display: flex;
-  gap: 40rpx;
-  padding: 24rpx;
-  margin-top: 12rpx;
-  background: #faf5ef;
-  border-radius: 20rpx;
-}
-.tool-item {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 10rpx;
-  font-size: 26rpx;
-  color: #333;
-}
-.tool-icon {
-  width: 50rpx;
-  height: 50rpx;
-  background: #fff;
-  border-radius: 12rpx;
-  padding: 10rpx;
-  box-shadow: 0 2rpx 8rpx rgba(0, 0, 0, 0.05);
-}
-
-.input-area {
-  background: #ffffff;
-  border-top: 2rpx solid #f0e0d2;
-  border-radius: 32rpx 32rpx 0 0;
-  padding: 20rpx 30rpx 30rpx; // 调整底部内边距
-  padding-bottom: calc(30rpx + env(safe-area-inset-bottom)); // 适配底部安全区
-  display: flex;
-  flex-direction: column;
-  gap: 20rpx;
-  box-shadow: 0 -6rpx 20rpx -12rpx #a6897a;
-  flex-shrink: 0; /* 防止输入框被压缩 */
-  position: relative;
-  z-index: 10;
-}
-
-.input-row {
+/* 语音/键盘切换按钮 */
+.voice-keyboard-toggle {
+  width: 60rpx;
+  height: 60rpx;
   display: flex;
   align-items: center;
-  gap: 16rpx;
+  justify-content: center;
+  flex-shrink: 0;
+
+  .toggle-icon {
+    width: 44rpx;
+    height: 44rpx;
+  }
 }
 
 .text-input-wrapper {
@@ -226,6 +304,24 @@ const removeImage = (idx) => {
   }
 }
 
+/* 语音输入框样式 */
+.voice-input-wrapper {
+  flex: 1;
+  background: #f8f2ea;
+  border-radius: 40rpx;
+  padding: 2rpx 24rpx;
+  border: 2rpx solid #ead9ca;
+  height: 60rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  .voice-placeholder {
+    font-size: 28rpx;
+    color: #b99f8b;
+  }
+}
+
 .send-button {
   width: 60rpx;
   height: 60rpx;
@@ -236,6 +332,7 @@ const removeImage = (idx) => {
   justify-content: center;
   border: 2rpx solid white;
   box-shadow: 0 6rpx 12rpx -6rpx #7b5e4a;
+  flex-shrink: 0;
 
   image {
     width: 28rpx;
@@ -245,6 +342,34 @@ const removeImage = (idx) => {
   &.disabled {
     opacity: 0.5;
   }
+}
+
+/* 工具面板 */
+.tool-panel {
+  display: flex;
+  gap: 40rpx;
+  padding: 24rpx;
+  margin-top: 12rpx;
+  background: #faf5ef;
+  border-radius: 20rpx;
+}
+
+.tool-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10rpx;
+  font-size: 26rpx;
+  color: #333;
+}
+
+.tool-icon {
+  width: 50rpx;
+  height: 50rpx;
+  background: #fff;
+  border-radius: 12rpx;
+  padding: 10rpx;
+  box-shadow: 0 2rpx 8rpx rgba(0, 0, 0, 0.05);
 }
 
 /* 图片预览 */
@@ -277,5 +402,10 @@ const removeImage = (idx) => {
   height: 36rpx;
   line-height: 36rpx;
   text-align: center;
+}
+
+/* 录音时的反馈 */
+.voice-input-wrapper:active {
+  background: #e8ddd2;
 }
 </style>

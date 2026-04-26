@@ -164,7 +164,7 @@ const showLocation = ref('请选择地区')
 // 跳转到地址选择页面
 function goToSelectAddress() {
   uni.navigateTo({
-    url: '/pages/index/address',
+    url: '/subPackages/index/address',
   })
 }
 
@@ -300,7 +300,7 @@ const handleClaim = () => {
 
 // 跳转详情
 const goToDetail = (serviceId) => {
-  uni.navigateTo({ url: `/pages/services/serviceDetail?id=${serviceId}` })
+  uni.navigateTo({ url: `/subPackages/services/serviceDetail?id=${serviceId}` })
 }
 
 // 返回

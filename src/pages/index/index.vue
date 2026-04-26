@@ -107,9 +107,9 @@ const { safeAreaInsets } = uni.getSystemInfoSync()
 const showLocation = ref('请选择地区')
 
 const bannerList = ref([
-  { src: '/static/images/banner1.png' },
-  { src: '/static/images/banner2.png' },
-  { src: '/static/images/banner3.png' },
+  { src: 'https://mxy-u.oss-cn-nanjing.aliyuncs.com/community/app/banner1.png' },
+  { src: 'https://mxy-u.oss-cn-nanjing.aliyuncs.com/community/app/banner2.png' },
+  { src: 'https://mxy-u.oss-cn-nanjing.aliyuncs.com/community/app/banner3.png' },
 ])
 
 // 服务列表相关
@@ -171,26 +171,26 @@ const toggleLike = (serviceId) => {
 // 跳转到服务详情
 const goToServiceDetail = (serviceId) => {
   uni.navigateTo({
-    url: `/pages/services/serviceDetail?id=${serviceId}`,
+    url: `/subPackages/services/serviceDetail?id=${serviceId}`,
   })
 }
 
 // 跳转到地址选择页面
 function goToSelectAddress() {
   uni.navigateTo({
-    url: '/pages/index/address',
+    url: '/subPackages/index/address',
   })
 }
 
 function goToInformation() {
   uni.navigateTo({
-    url: '/pages/content/information/informationList',
+    url: '/subPackages/content/information/informationList',
   })
 }
 
 function goToservice() {
   uni.navigateTo({
-    url: '/pages/services/serviceList',
+    url: '/subPackages/services/serviceList',
   })
 }
 

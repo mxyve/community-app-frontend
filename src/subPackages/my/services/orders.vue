@@ -276,7 +276,7 @@ function goBack() {
 
 const goDetail = (id) => {
   uni.navigateTo({
-    url: `/pages/my/services/ordersDetail?id=${id}`,
+    url: `/subPackages/my/services/ordersDetail?id=${id}`,
   })
 }
 </script>

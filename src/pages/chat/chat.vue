@@ -116,7 +116,7 @@ const handleNewChat = async () => {
   })
   const sessionId = res.data.id
   uni.navigateTo({
-    url: `/pages/chat/chatDetail?sessionId=${sessionId}`,
+    url: `/subPackages/chat/chatDetail?sessionId=${sessionId}`,
   })
 }
 
@@ -124,7 +124,7 @@ const handleNewChat = async () => {
 const openChat = (item) => {
   console.log(item)
   uni.navigateTo({
-    url: `/pages/chat/chatDetail?sessionId=${item.id}`,
+    url: `/subPackages/chat/chatDetail?sessionId=${item.id}`,
   })
 }
 const assistantList = [

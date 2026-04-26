@@ -201,67 +201,67 @@ const fetchMyCommunityCount = async () => {
 
 function goToEditProfile() {
   uni.navigateTo({
-    url: '/pages/my/editProfile',
+    url: '/subPackages/my/editProfile',
   })
 }
 
 function goToCollections() {
   uni.navigateTo({
-    url: '/pages/my/services/collections',
+    url: '/subPackages/my/services/collections',
   })
 }
 
 function goToOrders() {
   uni.navigateTo({
-    url: '/pages/my/services/orders',
+    url: '/subPackages/my/services/orders',
   })
 }
 
 function goToConversationList() {
   uni.navigateTo({
-    url: '/pages/my/services/conversationList',
+    url: '/subPackages/my/services/conversationList',
   })
 }
 
 function goToReviews() {
   uni.navigateTo({
-    url: '/pages/my/services/reviews',
+    url: '/subPackages/my/services/reviews',
   })
 }
 
 function goToPosts() {
   uni.navigateTo({
-    url: '/pages/my/community/posts',
+    url: '/subPackages/my/community/posts',
   })
 }
 
 function goToLikes() {
   uni.navigateTo({
-    url: '/pages/my/community/likes',
+    url: '/subPackages/my/community/likes',
   })
 }
 
 function goToComments() {
   uni.navigateTo({
-    url: '/pages/my/community/comments',
+    url: '/subPackages/my/community/comments',
   })
 }
 
 function goToFeedback() {
   uni.navigateTo({
-    url: '/pages/my/feedback',
+    url: '/subPackages/my/feedback',
   })
 }
 
 function goToAbout() {
   uni.navigateTo({
-    url: '/pages/my/about',
+    url: '/subPackages/my/about',
   })
 }
 
 function goToSettings() {
   uni.navigateTo({
-    url: '/pages/my/settings',
+    url: '/subPackages/my/settings',
   })
 }
 
@@ -303,7 +303,7 @@ const handleQuitClick = () => {
             icon: 'success',
           })
           uni.reLaunch({
-            url: '/pages/login/login',
+            url: '/subPackages/login/login',
           })
         }
       }

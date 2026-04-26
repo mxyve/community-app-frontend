@@ -113,7 +113,7 @@ function goBack() {
 }
 
 const goToDetail = (serviceId) => {
-  uni.navigateTo({ url: `/pages/services/serviceDetail?id=${serviceId}` })
+  uni.navigateTo({ url: `/subPackages/services/serviceDetail?id=${serviceId}` })
 }
 
 // 预约跳转
@@ -129,7 +129,7 @@ const handleBook = (item) => {
   }
 
   uni.navigateTo({
-    url: `/pages/services/book?service=${JSON.stringify(serviceData)}`,
+    url: `/subPackages/services/book?service=${JSON.stringify(serviceData)}`,
   })
 }
 </script>

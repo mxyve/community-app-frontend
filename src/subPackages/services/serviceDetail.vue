@@ -163,7 +163,7 @@ const handleContactService = async () => {
     if (sessionId) {
       // 跳转到聊天页面
       uni.navigateTo({
-        url: `/pages/services/conversation/chat?sessionId=${sessionId}&merchantId=${merchantId}&merchantName=${encodeURIComponent(merchantName || '商家客服')}`,
+        url: `/subPackages/services/conversation/chat?sessionId=${sessionId}&merchantId=${merchantId}&merchantName=${encodeURIComponent(merchantName || '商家客服')}`,
       })
     } else {
       uni.showToast({ title: '获取会话失败', icon: 'none' })
@@ -192,7 +192,7 @@ const handleCar = async () => {
 }
 const handleBook = () => {
   uni.navigateTo({
-    url: `/pages/services/book?service=${JSON.stringify(detail.value)}`,
+    url: `/subPackages/services/book?service=${JSON.stringify(detail.value)}`,
   })
 }
 </script>

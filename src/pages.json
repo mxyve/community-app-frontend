@@ -8,7 +8,6 @@
     }
   },
   "pages": [
-    //pages数组中第一项表示应用启动页，参考：https://uniapp.dcloud.io/collocation/pages
     {
       "path": "pages/index/index",
       "style": {
@@ -40,206 +39,213 @@
         "navigationBarTextStyle": "white",
         "navigationBarTitleText": "我的"
       }
-    },
+    }
+  ],
+  "subPackages": [
     {
-      "path": "pages/login/login",
-      "style": {
-        "navigationStyle": "custom",
-        "navigationBarTextStyle": "white",
-        "navigationBarTitleText": "登录"
-      }
-    },
-    {
-      "path": "pages/index/address",
-      "style": {
-        "navigationStyle": "custom",
-        "navigationBarTextStyle": "white",
-        "navigationBarTitleText": "位置"
-      }
-    },
-    {
-      "path": "pages/index/notice",
-      "style": {
-        "navigationStyle": "custom",
-        "navigationBarTextStyle": "white",
-        "navigationBarTitleText": "公告"
-      }
-    },
-    {
-      "path": "pages/chat/chatDetail",
-      "style": {
-        "navigationStyle": "custom",
-        "navigationBarTextStyle": "white",
-        "navigationBarTitleText": "会话详情"
-      }
-    },
-    {
-      "path": "pages/community/publish",
-      "style": {
-        "navigationStyle": "custom",
-        "navigationBarTextStyle": "white",
-        "navigationBarTitleText": "发布文章"
-      }
-    },
-    {
-      "path": "pages/services/serviceList",
-      "style": {
-        "navigationStyle": "custom",
-        "navigationBarTextStyle": "white",
-        "navigationBarTitleText": "服务列表"
-      }
-    },
-    {
-      "path": "pages/services/serviceDetail",
-      "style": {
-        "navigationStyle": "custom",
-        "navigationBarTextStyle": "white",
-        "navigationBarTitleText": "服务详情"
-      }
-    },
-    {
-      "path": "pages/my/editProfile",
-      "style": {
-        "navigationStyle": "custom",
-        "navigationBarTextStyle": "white",
-        "navigationBarTitleText": "编辑信息"
-      }
-    },
-    {
-      "path": "pages/my/services/collections",
-      "style": {
-        "navigationStyle": "custom",
-        "navigationBarTextStyle": "white",
-        "navigationBarTitleText": "我的收藏"
-      }
-    },
-    {
-      "path": "pages/my/services/orders",
-      "style": {
-        "navigationStyle": "custom",
-        "navigationBarTextStyle": "white",
-        "navigationBarTitleText": "我的订单"
-      }
-    },
-    {
-      "path": "pages/my/services/reviews",
-      "style": {
-        "navigationStyle": "custom",
-        "navigationBarTextStyle": "white",
-        "navigationBarTitleText": "我的评价"
-      }
-    },
-    {
-      "path": "pages/my/community/posts",
-      "style": {
-        "navigationStyle": "custom",
-        "navigationBarTextStyle": "white",
-        "navigationBarTitleText": "我的发布"
-      }
-    },
-    {
-      "path": "pages/my/community/likes",
-      "style": {
-        "navigationStyle": "custom",
-        "navigationBarTextStyle": "white",
-        "navigationBarTitleText": "我的点赞"
-      }
-    },
-    {
-      "path": "pages/my/community/comments",
-      "style": {
-        "navigationStyle": "custom",
-        "navigationBarTextStyle": "white",
-        "navigationBarTitleText": "我的评论"
-      }
-    },
-    {
-      "path": "pages/my/feedback",
-      "style": {
-        "navigationStyle": "custom",
-        "navigationBarTextStyle": "white",
-        "navigationBarTitleText": "意见反馈"
-      }
-    },
-    {
-      "path": "pages/my/about",
-      "style": {
-        "navigationStyle": "custom",
-        "navigationBarTextStyle": "white",
-        "navigationBarTitleText": "关于平台"
-      }
-    },
-    {
-      "path": "pages/my/settings",
-      "style": {
-        "navigationStyle": "custom",
-        "navigationBarTextStyle": "white",
-        "navigationBarTitleText": "系统设置"
-      }
-    },
-    {
-      "path": "pages/my/services/ordersDetail",
-      "style": {
-        "navigationStyle": "custom",
-        "navigationBarTextStyle": "white",
-        "navigationBarTitleText": "订单详情"
-      }
-    },
-    {
-      "path": "pages/services/book",
-      "style": {
-        "navigationStyle": "custom",
-        "navigationBarTextStyle": "white",
-        "navigationBarTitleText": "预约"
-      }
-    },
-    {
-      "path": "pages/community/detail",
-      "style": {
-        "navigationStyle": "custom",
-        "navigationBarTextStyle": "white",
-        "navigationBarTitleText": "文章详情"
-      }
-    },
-    {
-      "path": "pages/services/conversation/chat",
-      "style": {
-        "navigationStyle": "custom",
-        "navigationBarTextStyle": "white",
-        "navigationBarTitleText": "商家客服"
-      }
-    },
-    {
-      "path": "pages/content/information/informationList",
-      "style": {
-        "navigationStyle": "custom",
-        "navigationBarTextStyle": "white",
-        "navigationBarTitleText": "资讯列表"
-      }
-    },
-    {
-      "path": "pages/content/information/informationDetail",
-      "style": {
-        "navigationStyle": "custom",
-        "navigationBarTextStyle": "white",
-        "navigationBarTitleText": "资讯详情"
-      }
-    },
-    {
-      "path": "pages/my/services/conversationList",
-      "style": {
-        "navigationStyle": "custom",
-        "navigationBarTextStyle": "white",
-        "navigationBarTitleText": "客服消息"
-      }
-    },
-    {
-      "path": "pages/my/services/conversationDetail",
-      "style": {
-        "navigationStyle": "custom",
-        "navigationBarTextStyle": "white",
-        "navigationBarTitleText": "客服消息详情"
-      }
+      "root": "subPackages",
+      "pages": [
+        {
+          "path": "login/login",
+          "style": {
+            "navigationStyle": "custom",
+            "navigationBarTextStyle": "white",
+            "navigationBarTitleText": "登录"
+          }
+        },
+        {
+          "path": "index/address",
+          "style": {
+            "navigationStyle": "custom",
+            "navigationBarTextStyle": "white",
+            "navigationBarTitleText": "位置"
+          }
+        },
+        {
+          "path": "index/notice",
+          "style": {
+            "navigationStyle": "custom",
+            "navigationBarTextStyle": "white",
+            "navigationBarTitleText": "公告"
+          }
+        },
+        {
+          "path": "chat/chatDetail",
+          "style": {
+            "navigationStyle": "custom",
+            "navigationBarTextStyle": "white",
+            "navigationBarTitleText": "会话详情"
+          }
+        },
+        {
+          "path": "community/publish",
+          "style": {
+            "navigationStyle": "custom",
+            "navigationBarTextStyle": "white",
+            "navigationBarTitleText": "发布文章"
+          }
+        },
+        {
+          "path": "community/detail",
+          "style": {
+            "navigationStyle": "custom",
+            "navigationBarTextStyle": "white",
+            "navigationBarTitleText": "文章详情"
+          }
+        },
+        {
+          "path": "services/serviceList",
+          "style": {
+            "navigationStyle": "custom",
+            "navigationBarTextStyle": "white",
+            "navigationBarTitleText": "服务列表"
+          }
+        },
+        {
+          "path": "services/serviceDetail",
+          "style": {
+            "navigationStyle": "custom",
+            "navigationBarTextStyle": "white",
+            "navigationBarTitleText": "服务详情"
+          }
+        },
+        {
+          "path": "services/book",
+          "style": {
+            "navigationStyle": "custom",
+            "navigationBarTextStyle": "white",
+            "navigationBarTitleText": "预约"
+          }
+        },
+        {
+          "path": "services/conversation/chat",
+          "style": {
+            "navigationStyle": "custom",
+            "navigationBarTextStyle": "white",
+            "navigationBarTitleText": "商家客服"
+          }
+        },
+        {
+          "path": "my/editProfile",
+          "style": {
+            "navigationStyle": "custom",
+            "navigationBarTextStyle": "white",
+            "navigationBarTitleText": "编辑信息"
+          }
+        },
+        {
+          "path": "my/feedback",
+          "style": {
+            "navigationStyle": "custom",
+            "navigationBarTextStyle": "white",
+            "navigationBarTitleText": "意见反馈"
+          }
+        },
+        {
+          "path": "my/about",
+          "style": {
+            "navigationStyle": "custom",
+            "navigationBarTextStyle": "white",
+            "navigationBarTitleText": "关于平台"
+          }
+        },
+        {
+          "path": "my/settings",
+          "style": {
+            "navigationStyle": "custom",
+            "navigationBarTextStyle": "white",
+            "navigationBarTitleText": "系统设置"
+          }
+        },
+        {
+          "path": "my/services/collections",
+          "style": {
+            "navigationStyle": "custom",
+            "navigationBarTextStyle": "white",
+            "navigationBarTitleText": "我的收藏"
+          }
+        },
+        {
+          "path": "my/services/orders",
+          "style": {
+            "navigationStyle": "custom",
+            "navigationBarTextStyle": "white",
+            "navigationBarTitleText": "我的订单"
+          }
+        },
+        {
+          "path": "my/services/reviews",
+          "style": {
+            "navigationStyle": "custom",
+            "navigationBarTextStyle": "white",
+            "navigationBarTitleText": "我的评价"
+          }
+        },
+        {
+          "path": "my/services/ordersDetail",
+          "style": {
+            "navigationStyle": "custom",
+            "navigationBarTextStyle": "white",
+            "navigationBarTitleText": "订单详情"
+          }
+        },
+        {
+          "path": "my/services/conversationList",
+          "style": {
+            "navigationStyle": "custom",
+            "navigationBarTextStyle": "white",
+            "navigationBarTitleText": "客服消息"
+          }
+        },
+        {
+          "path": "my/services/conversationDetail",
+          "style": {
+            "navigationStyle": "custom",
+            "navigationBarTextStyle": "white",
+            "navigationBarTitleText": "客服消息详情"
+          }
+        },
+        {
+          "path": "my/community/posts",
+          "style": {
+            "navigationStyle": "custom",
+            "navigationBarTextStyle": "white",
+            "navigationBarTitleText": "我的发布"
+          }
+        },
+        {
+          "path": "my/community/likes",
+          "style": {
+            "navigationStyle": "custom",
+            "navigationBarTextStyle": "white",
+            "navigationBarTitleText": "我的点赞"
+          }
+        },
+        {
+          "path": "my/community/comments",
+          "style": {
+            "navigationStyle": "custom",
+            "navigationBarTextStyle": "white",
+            "navigationBarTitleText": "我的评论"
+          }
+        },
+        {
+          "path": "content/information/informationList",
+          "style": {
+            "navigationStyle": "custom",
+            "navigationBarTextStyle": "white",
+            "navigationBarTitleText": "资讯列表"
+          }
+        },
+        {
+          "path": "content/information/informationDetail",
+          "style": {
+            "navigationStyle": "custom",
+            "navigationBarTextStyle": "white",
+            "navigationBarTitleText": "资讯详情"
+          }
+        }
+      ]
     }
   ],
   "globalStyle": {

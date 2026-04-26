@@ -360,18 +360,18 @@ const handleLike = async (articleId, item) => {
 const goToDetail = (articleId) => {
   console.log('articleId', articleId)
   uni.navigateTo({
-    url: `/pages/community/detail?articleId=${articleId}`,
+    url: `/subPackages/community/detail?articleId=${articleId}`,
   })
 }
 
 const goToSelectAddress = () => {
   uni.navigateTo({
-    url: '/pages/index/address',
+    url: '/subPackages/index/address',
   })
 }
 
 const goToPublish = () => {
-  uni.navigateTo({ url: '/pages/community/publish' })
+  uni.navigateTo({ url: '/subPackages/community/publish' })
 }
 </script>
 

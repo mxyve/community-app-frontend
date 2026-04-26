@@ -38,7 +38,19 @@
         <view class="message-bubble assistant">
           <ChatMarkdown :key="item.id + item.content.length" :content="item.content" />
           <view v-if="item.isStreaming" class="cursor"></view>
-          <view class="message-time">{{ formatTime(item.createTime) }}</view>
+          <!-- 时间和图标放在同一行 -->
+          <view class="message-footer">
+            <!-- 语音播放按钮放在前面 -->
+            <view class="audio-control" v-if="item.audio">
+              <image
+                :src="item.isPlaying ? '/static/icon/voice_off.svg' : '/static/icon/voice_on.svg'"
+                mode="aspectFit"
+                class="audio-icon"
+                @click="handleAudioClick(item.audio, item.id)"
+              />
+            </view>
+            <view class="message-time">{{ formatTime(item.createTime) }}</view>
+          </view>
         </view>
       </view>
     </view>
@@ -58,6 +70,8 @@ const props = defineProps({
   loading: { type: Boolean, default: false },
 })
 
+const emit = defineEmits(['toggleAudio'])
+
 // 格式化时间
 const formatTime = (timestamp) => {
   if (!timestamp) return ''
@@ -76,13 +90,18 @@ const previewImage = (current, urls) => {
 
 // 工具方法：统一格式化图片链接
 const getImages = (urls) => {
-  if (!urls) return [] // 空值 → 空数组
-  if (Array.isArray(urls)) return urls // 数组 → 直接返回
-  if (typeof urls !== 'string') return [] // 不是字符串 → 空数组
+  if (!urls) return []
+  if (Array.isArray(urls)) return urls
+  if (typeof urls !== 'string') return []
   return urls
     .split(',')
     .map((u) => u.trim())
     .filter(Boolean)
+}
+
+// 处理音频点击，向父组件发送事件
+const handleAudioClick = (audio, messageId) => {
+  emit('toggleAudio', { audio, messageId })
 }
 </script>
 
@@ -144,6 +163,7 @@ const getImages = (urls) => {
   line-height: 1.6;
   color: #332b22;
   word-break: break-word;
+  position: relative;
 
   &.assistant {
     background: #ffffff;
@@ -221,5 +241,32 @@ const getImages = (urls) => {
 .message-bubble.assistant {
   max-width: 80%;
   width: auto;
+}
+
+.message-footer {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  margin-top: 10rpx;
+  gap: 12rpx;
+  flex-direction: row;
+}
+
+.message-time {
+  font-size: 20rpx;
+  color: #9b7b6b;
+  opacity: 0.8;
+  margin-top: 0;
+}
+
+.audio-control {
+  display: inline-flex;
+  align-items: center;
+}
+
+.audio-icon {
+  width: 32rpx;
+  height: 32rpx;
+  padding: 4rpx;
 }
 </style>

@@ -25,7 +25,7 @@ export const http = (options) => {
           // 401错误 -> 清理用户信息，跳转到登录页
           const userStore = useUserStore()
           userStore.clearUserInfo()
-          uni.navigateTo({ url: '/pages/login/login' })
+          uni.navigateTo({ url: '/subPackages/login/login' })
           reject(res)
         } else {
           // 其他错误 -> 根据后端错误信息轻提示

@@ -241,7 +241,7 @@ function loadMore() {
 // 跳转详情
 function goToDetail(id) {
   uni.navigateTo({
-    url: `/pages/content/information/informationDetail?id=${id}`,
+    url: `/subPackages/content/information/informationDetail?id=${id}`,
   })
 }
 
