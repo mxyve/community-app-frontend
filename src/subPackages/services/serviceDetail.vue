@@ -54,6 +54,17 @@
       <view class="content-text">{{ detail.description }}</view>
     </view>
 
+    <!-- 服务评价 -->
+    <view class="section comment-entry" @click="goToServiceComment">
+      <view class="comment-title">
+        <text class="section-title">服务评价</text>
+        <image class="right-arrow-icon" src="/static/icon/arrow_right.png" mode="aspectFit"></image>
+      </view>
+      <view class="comment-desc">
+        <text>查看用户评价 · 真实反馈</text>
+      </view>
+    </view>
+
     <!-- 商家信息 -->
     <view class="merchant-section">
       <view class="merchant-info">
@@ -193,6 +204,12 @@ const handleCar = async () => {
 const handleBook = () => {
   uni.navigateTo({
     url: `/subPackages/services/book?service=${JSON.stringify(detail.value)}`,
+  })
+}
+// 跳转到服务评价页
+const goToServiceComment = () => {
+  uni.navigateTo({
+    url: `/subPackages/services/comment/serviceComment?id=${detail.value.id}`,
   })
 }
 </script>
@@ -417,5 +434,24 @@ const handleBook = () => {
     width: 50rpx;
     height: 50rpx;
   }
+}
+
+/* 评价入口样式 */
+.comment-entry {
+  cursor: pointer;
+}
+.comment-title {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 10rpx;
+}
+.right-arrow-icon {
+  width: 28rpx;
+  height: 28rpx;
+}
+.comment-desc {
+  font-size: 26rpx;
+  color: #999;
 }
 </style>

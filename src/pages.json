@@ -244,6 +244,22 @@
             "navigationBarTextStyle": "white",
             "navigationBarTitleText": "资讯详情"
           }
+        },
+        {
+          "path": "services/comment/serviceComment",
+          "style": {
+            "navigationStyle": "custom",
+            "navigationBarTextStyle": "white",
+            "navigationBarTitleText": "服务评价"
+          }
+        },
+        {
+          "path": "services/comment/commentDetail",
+          "style": {
+            "navigationStyle": "custom",
+            "navigationBarTextStyle": "white",
+            "navigationBarTitleText": "评价详情"
+          }
         }
       ]
     }

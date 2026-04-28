@@ -8,7 +8,7 @@
         mode="aspectFit"
         @click="goBack"
       ></image>
-      <view class="title">我的评价</view>
+      <view class="title">服务评价</view>
     </view>
 
     <!-- 评价列表 -->
@@ -18,16 +18,9 @@
       refresher-enabled
       :refresher-triggered="refresherTriggered"
       @refresherrefresh="onRefresh"
-      @scrolltolower="loadMore"
     >
-      <view class="list-box">
-        <!-- 评价项 -->
-        <view
-          class="comment-item"
-          v-for="item in commentList"
-          :key="item.id"
-          @click="goToServiceDetail(item.serviceId)"
-        >
+      <view class="comment-list">
+        <view class="comment-item" v-for="item in commentList" :key="item.id">
           <view class="user-info">
             <image class="avatar" :src="item.avatar" mode="aspectFill"></image>
             <view class="name-box">
@@ -41,10 +34,12 @@
           <view class="content">{{ item.content }}</view>
           <image v-if="item.img" :src="item.img" class="comment-image" mode="aspectFill" />
           <view class="time">{{ formatTime(item.createTime) }}</view>
+
+          <!-- 右下角 回复按钮 -->
+          <view class="reply-btn" @click="goToCommentDetail(item.id)">回复</view>
         </view>
 
-        <!-- 空状态 -->
-        <view class="empty" v-if="!loading && commentList.length === 0"> 暂无评价 </view>
+        <view class="empty" v-if="commentList.length === 0"> 暂无评价 </view>
       </view>
     </scroll-view>
   </view>
@@ -52,85 +47,67 @@
 
 <script setup>
 import { ref, onMounted } from 'vue'
-import { getMyServiceCommentList } from '@/service/services.js'
+import { getServiceCommentPage } from '@/service/services.js'
 
 const { safeAreaInsets } = uni.getSystemInfoSync()
 
-// 列表数据
+const serviceId = ref(null)
 const commentList = ref([])
-const loading = ref(false)
-const hasMore = ref(true)
-const current = ref(1)
-const size = ref(10)
 const refresherTriggered = ref(false)
 
-// 加载我的评价列表
-const fetchList = async (isRefresh = false) => {
-  if (loading.value) return
-  loading.value = true
-
-  try {
-    const res = await getMyServiceCommentList({
-      current: 1,
-      size: 10,
-    })
-    commentList.value = res.data.records || []
-  } catch (err) {
-    uni.showToast({ title: '加载失败', icon: 'none' })
-  } finally {
-    loading.value = false
+onMounted(() => {
+  const pages = getCurrentPages()
+  const currentPage = pages[pages.length - 1]
+  serviceId.value = currentPage.options.id
+  if (serviceId.value) {
+    loadCommentList()
   }
+})
+
+// 加载评价列表
+const loadCommentList = async () => {
+  const res = await getServiceCommentPage({
+    serviceId: serviceId.value,
+    current: 1,
+    size: 50,
+  })
+  commentList.value = res.data.records || []
+}
+
+// 跳转到评论详情
+const goToCommentDetail = (commentId) => {
+  uni.navigateTo({
+    url: `/subPackages/services/comment/commentDetail?commentId=${commentId}&serviceId=${serviceId.value}`,
+  })
+}
+
+const goBack = () => uni.navigateBack()
+
+// 格式化时间 去掉 T
+const formatTime = (time) => {
+  if (!time) return ''
+  return time.replace('T', ' ').substring(0, 16)
 }
 
 // 下拉刷新
 const onRefresh = async () => {
   if (refresherTriggered.value) return
   refresherTriggered.value = true
-
   try {
-    current.value = 1
-    hasMore.value = true
-    await fetchList(true)
+    await loadCommentList()
+  } catch (err) {
+    uni.showToast({ title: '刷新失败', icon: 'none' })
   } finally {
-    setTimeout(() => {
-      refresherTriggered.value = false
-    }, 500)
+    setTimeout(() => (refresherTriggered.value = false), 500)
   }
-}
-
-// 上拉加载更多
-const loadMore = () => {
-  if (hasMore.value && !loading.value) {
-    fetchList(false)
-  }
-}
-
-// 时间格式化
-const formatTime = (time) => {
-  if (!time) return ''
-  return time.replace('T', ' ').substring(0, 16)
-}
-
-onMounted(() => {
-  fetchList()
-})
-
-function goBack() {
-  uni.navigateBack()
-}
-
-// 跳转到服务详情页
-const goToServiceDetail = (serviceId) => {
-  uni.navigateTo({
-    url: `/subPackages/services/serviceDetail?id=${serviceId}`,
-  })
 }
 </script>
 
 <style lang="scss" scoped>
 .container {
-  background: #f8f6f2;
+  background: #faf5ef;
   min-height: 100vh;
+  padding-bottom: 120rpx;
   display: flex;
   flex-direction: column;
 }
@@ -154,15 +131,10 @@ const goToServiceDetail = (serviceId) => {
   }
 }
 
-.comment-scroll {
-  flex: 1;
-  min-height: 0;
-}
-
-.list-box {
+/* 评价列表 */
+.comment-list {
   padding: 30rpx;
 }
-
 .comment-item {
   background: #fff;
   border-radius: 20rpx;
@@ -208,24 +180,28 @@ const goToServiceDetail = (serviceId) => {
   font-size: 24rpx;
   color: #999;
 }
-
 .empty {
   text-align: center;
   padding: 60rpx 0;
   color: #999;
   font-size: 28rpx;
 }
-.load-more,
-.no-more {
-  text-align: center;
-  padding: 30rpx 0;
-  color: #999;
+.reply-btn {
+  text-align: right;
   font-size: 24rpx;
+  color: #b86b3f;
+  margin-top: 10rpx;
 }
+
+.comment-scroll {
+  flex: 1;
+  min-height: 0;
+}
+
 .comment-image {
   width: 320rpx;
   height: 320rpx;
   border-radius: 16rpx;
-  margin: 12rpx 0;
+  margin: 15rpx 0;
 }
 </style>

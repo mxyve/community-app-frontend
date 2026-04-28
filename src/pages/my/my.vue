@@ -78,10 +78,15 @@
             ></image>
             <text class="stat-label">客服消息</text>
           </view>
-          <!-- <view class="stat-card" @click="goToReviews">
-            <text class="stat-number">2</text>
-            <text class="stat-label">我的评价</text>
-          </view> -->
+          <view class="stat-card service-card" @click="goToReviews">
+            <image
+              class="service-icon"
+              src="/static/icon/review.svg"
+              mode="aspectFit"
+              style="width: 20px; height: 20px"
+            ></image>
+            <text class="stat-label">服务评价</text>
+          </view>
         </view>
       </view>
 

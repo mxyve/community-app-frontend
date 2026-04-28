@@ -137,3 +137,56 @@ export function getPayStatus(orderNo) {
     url: `/api/v1/orders/payStatus/${orderNo}`,
   })
 }
+
+/* ---------------- 订单评价相关 ----------------- */
+// 根据订单ID查询评价
+export function getReviewByOrderId(orderId) {
+  return http({
+    method: 'GET',
+    url: `/api/v1/service/comment/order/${orderId}`,
+  })
+}
+
+// 提交服务评价
+export function createServiceReview(data) {
+  return http({
+    method: 'POST',
+    url: '/api/v1/service/comment',
+    data,
+  })
+}
+
+// 获取服务评价列表
+export function getServiceCommentPage(data) {
+  return http({
+    method: 'POST',
+    url: '/api/v1/service/comment/pages',
+    data,
+  })
+}
+
+// 删除服务评论
+export function deleteServiceComment(commentId) {
+  return http({
+    method: 'DELETE',
+    url: `/api/v1/service/comment/${commentId}`,
+  })
+}
+
+// 获取我的服务评价列表
+export function getMyServiceCommentList(params) {
+  return http({
+    url: '/api/v1/service/comment/my/list',
+    method: 'GET',
+    params: params,
+  })
+}
+
+// 上传评论图片
+export const uploadCommentImage = (filePath) => {
+  return uni.uploadFile({
+    url: '/api/v1/service/comment/upload/picture',
+    filePath: filePath,
+    name: 'file',
+  })
+}
