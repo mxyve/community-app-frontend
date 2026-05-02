@@ -1,6 +1,26 @@
 <template>
   <view class="markdown-content">
-    <rich-text :nodes="parsedContent"></rich-text>
+    <!-- 服务卡片列表 -->
+    <view v-if="isServiceList" class="service-card-list">
+      <view
+        class="service-card"
+        v-for="item in serviceList"
+        :key="item.id"
+        @click="goToDetail(item.serviceId)"
+      >
+        <image class="cover" :src="item.coverImage" mode="aspectFill" />
+        <view class="info">
+          <text class="name">{{ item.serviceName }}</text>
+          <text class="desc">{{ item.description }}</text>
+          <view class="bottom">
+            <text class="price">¥{{ item.price }}</text>
+            <text class="star">⭐{{ (item.avgStar || 0).toFixed(1) }}</text>
+          </view>
+        </view>
+      </view>
+    </view>
+    <!-- 普通 markdown 内容 -->
+    <rich-text v-else :nodes="parsedContent"></rich-text>
   </view>
 </template>
 
@@ -14,7 +34,36 @@ const props = defineProps({
   },
 })
 
-// 简单markdown解析（可替换为更强大的库如marked）
+// 判断是否是服务列表 JSON
+const isServiceList = computed(() => {
+  if (!props.content) return false
+  const trimmed = props.content.trim()
+  if (!trimmed.startsWith('[') || !trimmed.endsWith(']')) return false
+  try {
+    const arr = JSON.parse(trimmed)
+    return Array.isArray(arr) && arr.length > 0 && arr[0].serviceId
+  } catch (e) {
+    return false
+  }
+})
+
+// 解析服务列表
+const serviceList = computed(() => {
+  try {
+    return JSON.parse(props.content.trim())
+  } catch (e) {
+    return []
+  }
+})
+
+// 跳转详情
+const goToDetail = (serviceId) => {
+  uni.navigateTo({
+    url: `/subPackages/services/serviceDetail?id=${serviceId}`,
+  })
+}
+
+// 简单markdown解析
 const parsedContent = computed(() => {
   let html = props.content
     .replace(/\n/g, '<br/>')
@@ -24,7 +73,6 @@ const parsedContent = computed(() => {
     .replace(/\*(.*?)\*/g, '<em>$1</em>')
     .replace(/!\[(.*?)\]\((.*?)\)/g, '<image class="markdown-image" src="$2" alt="$1"></image>')
     .replace(/\[(.*?)\]\((.*?)\)/g, '<a href="$2">$1</a>')
-
   return html
 })
 </script>
@@ -76,5 +124,67 @@ const parsedContent = computed(() => {
     word-wrap: break-word;
     word-break: break-word;
   }
+}
+
+.service-card-list {
+  display: flex;
+  flex-direction: column;
+  gap: 20rpx;
+  margin: 10rpx 0;
+}
+
+.service-card {
+  display: flex;
+  background: #fff;
+  border-radius: 24rpx;
+  overflow: hidden;
+  box-shadow: 0 6rpx 22rpx rgba(0, 0, 0, 0.06);
+  cursor: pointer;
+}
+
+.cover {
+  width: 160rpx;
+  height: 160rpx;
+  flex-shrink: 0;
+}
+
+.info {
+  flex: 1;
+  padding: 24rpx;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+.name {
+  font-size: 30rpx;
+  font-weight: bold;
+  color: #333;
+}
+
+.desc {
+  font-size: 24rpx;
+  color: #666;
+  margin-top: 6rpx;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.bottom {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 12rpx;
+}
+
+.price {
+  color: #ff5f3f;
+  font-size: 28rpx;
+  font-weight: bold;
+}
+
+.star {
+  font-size: 24rpx;
+  color: #666;
 }
 </style>

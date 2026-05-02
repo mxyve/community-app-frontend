@@ -180,7 +180,17 @@ const handleSend = async (data) => {
       (chunk) => {
         console.log('📨 页面收到chunk:', chunk)
 
-        // ✅ 检查是否是最终包含音频的响应（使用 isComplete 标记）
+        // 处理服务数据
+        if (chunk.isServiceData && chunk.content) {
+          console.log('📦 收到服务卡片数据')
+          aiMessage.content = chunk.content
+          aiMessage.isStreaming = false
+          messageList.value = [...messageList.value]
+          scrollToBottom()
+          return
+        }
+
+        // 检查是否是最终包含音频的响应（使用 isComplete 标记）
         if (chunk.isComplete && chunk.text && chunk.audio) {
           console.log('🎵 收到完整响应，文字:', chunk.text.substring(0, 50))
           aiMessage.content = chunk.text
@@ -407,5 +417,6 @@ const removeImage = (idx) => {
 .message-scroll {
   flex: 1;
   overflow-y: auto;
+  padding-bottom: env(safe-area-inset-bottom);
 }
 </style>

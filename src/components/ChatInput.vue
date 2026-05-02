@@ -231,6 +231,10 @@ const removeImage = (idx) => {
 }
 
 .input-area {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
   background: #ffffff;
   border-top: 2rpx solid #f0e0d2;
   border-radius: 32rpx 32rpx 0 0;
@@ -241,7 +245,6 @@ const removeImage = (idx) => {
   gap: 20rpx;
   box-shadow: 0 -6rpx 20rpx -12rpx #a6897a;
   flex-shrink: 0;
-  position: relative;
   z-index: 10;
 }
 
