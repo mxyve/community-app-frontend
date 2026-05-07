@@ -11,9 +11,11 @@
         <image class="cover" :src="item.coverImage" mode="aspectFill" />
         <view class="info">
           <text class="name">{{ item.serviceName }}</text>
+          <text class="service-id">服务ID: {{ item.serviceId }}</text>
           <text class="desc">{{ item.description }}</text>
+          <text class="service-area">服务区域: {{ formatServiceArea(item.serviceArea) }}</text>
           <view class="bottom">
-            <text class="price">¥{{ item.price }}</text>
+            <text class="price">¥{{ item.price }}/{{ item.unit || '次' }}</text>
             <text class="star">⭐{{ (item.avgStar || 0).toFixed(1) }}</text>
           </view>
         </view>
@@ -55,6 +57,17 @@ const serviceList = computed(() => {
     return []
   }
 })
+
+// 格式化服务区域
+const formatServiceArea = (area) => {
+  if (!area) return '暂无'
+  try {
+    const areaList = JSON.parse(area)
+    return areaList.join('、')
+  } catch (e) {
+    return area
+  }
+}
 
 // 跳转详情
 const goToDetail = (serviceId) => {
@@ -140,12 +153,14 @@ const parsedContent = computed(() => {
   overflow: hidden;
   box-shadow: 0 6rpx 22rpx rgba(0, 0, 0, 0.06);
   cursor: pointer;
+  align-items: center;
 }
 
 .cover {
   width: 160rpx;
   height: 160rpx;
   flex-shrink: 0;
+  object-fit: cover;
 }
 
 .info {
@@ -162,18 +177,42 @@ const parsedContent = computed(() => {
   color: #333;
 }
 
+.service-id {
+  font-size: 22rpx;
+  color: #999;
+  margin-top: 4rpx;
+}
+
 .desc {
   font-size: 24rpx;
   color: #666;
   margin-top: 6rpx;
   overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  word-wrap: break-word;
+  word-break: break-all;
+  line-height: 1.4;
+}
+
+.service-area {
+  font-size: 22rpx;
+  color: #42b983;
+  margin-top: 4rpx;
+  overflow: hidden;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  word-wrap: break-word;
+  word-break: break-all;
+  line-height: 1.3;
 }
 
 .bottom {
   display: flex;
   justify-content: space-between;
+  align-items: baseline;
   margin-top: 12rpx;
 }
 

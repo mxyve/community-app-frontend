@@ -111,6 +111,7 @@ const handleAudioClick = (audio, messageId) => {
   display: flex;
   flex-direction: column;
   gap: 40rpx;
+  padding-bottom: 60rpx;
 }
 
 .message-item {

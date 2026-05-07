@@ -177,62 +177,57 @@ const handleSend = async (data) => {
         attachments: imageUrls.map((url) => ({ type: 'image', url })),
         audio: audio || '',
       },
-      (chunk) => {
-        console.log('📨 页面收到chunk:', chunk)
-
-        // 处理服务数据
-        if (chunk.isServiceData && chunk.content) {
-          console.log('📦 收到服务卡片数据')
-          aiMessage.content = chunk.content
-          aiMessage.isStreaming = false
-          messageList.value = [...messageList.value]
-          scrollToBottom()
-          return
-        }
-
-        // 检查是否是最终包含音频的响应（使用 isComplete 标记）
-        if (chunk.isComplete && chunk.text && chunk.audio) {
-          console.log('🎵 收到完整响应，文字:', chunk.text.substring(0, 50))
-          aiMessage.content = chunk.text
-          aiMessage.isStreaming = false
-          aiMessage.audio = chunk.audio
-          aiMessage.isPlaying = false
-          messageList.value = [...messageList.value]
-          // 只有全局自动播放开启时才自动播放
-          if (chunk.audio && autoPlayEnabled.value) {
-            playAudio(chunk.audio, aiMessage.id)
+      (resp) => {
+        try {
+          // 订单卡片
+          if (resp.isServiceData) {
+            aiMessage.content = resp.content
+            aiMessage.isStreaming = false
+            messageList.value = [...messageList.value]
+            scrollToBottom()
+            return
           }
-          scrollToBottom()
-          return
-        }
 
-        // 流式文字片段累加
-        if (chunk.content) {
-          aiMessage.content = chunk.content
-          console.log('💬 更新AI内容长度:', aiMessage.content.length)
+          // 文字+语音
+          if (resp.isComplete && resp.text) {
+            aiMessage.content = resp.text
+            aiMessage.audio = resp.audio || ''
+            aiMessage.isStreaming = false
+
+            if (autoPlayEnabled.value && aiMessage.audio) {
+              playAudio(resp.audio, aiMessage.id)
+            }
+          }
+
+          // 普通文本
+          if (resp.content) {
+            aiMessage.content = resp.content
+            aiMessage.isStreaming = false
+          }
+
           messageList.value = [...messageList.value]
           scrollToBottom()
+        } catch (e) {
+          console.error('解析消息错误', e)
         }
       },
       (err) => {
-        console.error('❌ 流式错误:', err)
-        aiMessage.content = '出错了，请稍后重试'
+        console.error('❌ 请求错误:', err)
+        aiMessage.content = '请求超时或失败，请重试'
         aiMessage.isStreaming = false
         sending.value = false
         messageList.value = [...messageList.value]
       },
       () => {
-        console.log('✅ 流式完成')
         sending.value = false
         selectedImages.value = []
-        scrollToBottom()
+        console.log('✅ 请求完成')
       },
     )
   } catch (error) {
-    aiMessage.content = '抱歉，发生错误'
+    aiMessage.content = '请求异常'
     aiMessage.isStreaming = false
     sending.value = false
-    messageList.value = [...messageList.value]
     selectedImages.value = []
   }
 }
@@ -417,6 +412,6 @@ const removeImage = (idx) => {
 .message-scroll {
   flex: 1;
   overflow-y: auto;
-  padding-bottom: env(safe-area-inset-bottom);
+  padding-bottom: 210rpx;
 }
 </style>

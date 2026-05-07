@@ -239,7 +239,7 @@ const removeImage = (idx) => {
   border-top: 2rpx solid #f0e0d2;
   border-radius: 32rpx 32rpx 0 0;
   padding: 20rpx 30rpx 30rpx;
-  padding-bottom: calc(30rpx + env(safe-area-inset-bottom));
+  padding-bottom: calc(20rpx + env(safe-area-inset-bottom));
   display: flex;
   flex-direction: column;
   gap: 20rpx;
