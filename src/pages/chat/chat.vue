@@ -270,7 +270,10 @@ onMounted(() => {
   border-radius: 24rpx;
   margin: 0 30rpx 40rpx;
   padding: 30rpx;
-  box-shadow: 0 4rpx 16rpx rgba(0, 0, 0, 0.06);
+  box-shadow:
+    0 12rpx 20rpx -15rpx #c4a690,
+    0 2rpx 0 0 #e8d9cc;
+  border: 2rpx solid #f5e6d9;
 
   .new-chat-icon {
     width: 60rpx;
@@ -332,7 +335,10 @@ onMounted(() => {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    box-shadow: 0 2rpx 12rpx rgba(0, 0, 0, 0.05);
+    box-shadow:
+      0 4rpx 12rpx -6rpx rgba(196, 166, 144, 0.3),
+      0 1rpx 0 0 #e8d9cc;
+    border: 2rpx solid #f5e6d9;
 
     .left {
       display: flex;

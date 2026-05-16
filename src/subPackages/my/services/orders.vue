@@ -50,46 +50,70 @@
       :style="{ height: scrollHeight + 'px' }"
     >
       <view class="order-list" v-if="!loading || orderList.length > 0">
-        <!-- 左滑删除组件 -->
-        <uni-swipe-action v-for="item in orderList" :key="item.id" :auto-close="true">
-          <uni-swipe-action-item
-            :right-options="[{ text: '删除', type: 'error' }]"
-            @click="handleDelete(item.id)"
-          >
-            <view class="order-item" @click="goDetail(item.id)">
-              <!-- 订单编号 + 状态 -->
-              <view class="order-top">
-                <view class="order-left">
-                  <text class="order-no">订单号：{{ item.orderNo }}</text>
-                  <text class="merchant-name">{{ item.merchantName }}</text>
-                </view>
-                <text class="order-status" :style="getStatusStyle(item.status)">
-                  {{ getStatusText(item.status) }}
-                </text>
-              </view>
+        <view
+          class="order-item"
+          v-for="item in orderList"
+          :key="item.id"
+          @click="goDetail(item.id)"
+        >
+          <!-- 订单编号 + 状态 -->
+          <view class="order-top">
+            <view class="order-left">
+              <text class="order-no">订单号：{{ item.orderNo }}</text>
+              <text class="merchant-name">{{ item.merchantName }}</text>
+            </view>
 
-              <!-- 服务信息 -->
-              <view class="service-info">
-                <view class="icon">📦</view>
-                <view class="info-box">
-                  <text class="service-name">{{ item.serviceName }}</text>
-                  <text class="service-time" v-if="item.serviceTime">
-                    服务时间：{{ formatTime(item.serviceTime) }}
-                  </text>
-                </view>
-              </view>
-
-              <!-- 金额 + 底部 -->
-              <view class="order-bottom">
-                <text class="price">¥{{ item.payAmount }}</text>
-                <view class="contact">
-                  <text>{{ item.contactName }}</text>
-                  <text>{{ item.contactPhone }}</text>
-                </view>
+            <!-- 包一层 status-box，修复点击穿透 -->
+            <view class="status-box" @click.stop>
+              <text class="order-status" :style="getStatusStyle(item.status)">
+                {{ getStatusText(item.status) }}
+              </text>
+              <view class="action-box" v-if="showActionBtn(item.status)">
+                <button
+                  v-if="item.status === 1"
+                  class="action-btn cancel-btn"
+                  @click.stop="handleCancelNow(item.id)"
+                >
+                  取消预约
+                </button>
+                <button
+                  v-if="item.status === 2 || item.status === 3"
+                  class="action-btn apply-cancel-btn"
+                  @click.stop="showCancelModal(item.orderNo)"
+                >
+                  申请取消
+                </button>
+                <button
+                  v-if="item.status === 4"
+                  class="action-btn refund-btn"
+                  @click.stop="showRefundModal(item.orderNo)"
+                >
+                  申请退款
+                </button>
               </view>
             </view>
-          </uni-swipe-action-item>
-        </uni-swipe-action>
+          </view>
+
+          <!-- 服务信息 -->
+          <view class="service-info">
+            <view class="icon">📦</view>
+            <view class="info-box">
+              <text class="service-name">{{ item.serviceName }}</text>
+              <text class="service-time" v-if="item.serviceTime">
+                服务时间：{{ formatTime(item.serviceTime) }}
+              </text>
+            </view>
+          </view>
+
+          <!-- 金额 + 底部 -->
+          <view class="order-bottom">
+            <text class="price">¥{{ item.payAmount }}</text>
+            <view class="contact">
+              <text>{{ item.contactName }}</text>
+              <text>{{ item.contactPhone }}</text>
+            </view>
+          </view>
+        </view>
 
         <!-- 加载更多 -->
         <view class="load-more" v-if="loading">加载中...</view>
@@ -107,7 +131,7 @@
 
 <script setup>
 import { ref, onMounted } from 'vue'
-import { getOrderPage, deleteOrder } from '@/service/services.js'
+import { getOrderPage, deleteOrder, cancelOrder, applyRefund } from '@/service/services.js'
 
 const { safeAreaInsets, windowHeight } = uni.getSystemInfoSync()
 
@@ -126,6 +150,17 @@ const refresherTriggered = ref(false)
 
 // 滚动区域高度
 const scrollHeight = ref(windowHeight - 200)
+
+// 弹窗控制
+const showCancel = ref(false)
+const showRefund = ref(false)
+const currentOrderNo = ref('')
+const reasonText = ref('')
+
+// 是否显示操作按钮
+const showActionBtn = (status) => {
+  return [1, 2, 3, 4].includes(status)
+}
 
 // 页面加载时获取订单列表
 onMounted(() => {
@@ -278,6 +313,99 @@ const goDetail = (id) => {
   uni.navigateTo({
     url: `/subPackages/my/services/ordersDetail?id=${id}`,
   })
+}
+
+// 待服务：直接取消（删除）
+const handleCancelNow = async (id) => {
+  uni.showModal({
+    title: '确认取消',
+    content: '确定取消该预约？取消后订单将被删除',
+    success: async (res) => {
+      if (res.confirm) {
+        try {
+          await deleteOrder(id)
+          uni.showToast({ title: '取消成功' })
+          refreshList()
+        } catch (e) {
+          uni.showToast({ title: '操作失败', icon: 'none' })
+        }
+      }
+    },
+  })
+}
+
+// 申请取消订单
+const showCancelModal = (orderNo) => {
+  uni.showModal({
+    title: '申请取消订单',
+    editable: true,
+    placeholderText: '请输入取消原因',
+    success: (res) => {
+      if (res.confirm && res.content) {
+        cancelOrder(orderNo, res.content)
+          .then(() => {
+            uni.showToast({ title: '申请成功' })
+            refreshList()
+          })
+          .catch((err) => {
+            console.error('取消申请失败', err)
+            uni.showToast({ title: '申请失败', icon: 'none' })
+          })
+      }
+    },
+  })
+}
+
+// 申请退款
+const showRefundModal = (orderNo) => {
+  uni.showModal({
+    title: '申请退款',
+    editable: true,
+    placeholderText: '请输入退款原因',
+    success: (res) => {
+      if (res.confirm && res.content) {
+        applyRefund(orderNo, res.content)
+          .then(() => {
+            uni.showToast({ title: '退款申请成功' })
+            refreshList()
+          })
+          .catch((err) => {
+            console.error('退款申请失败', err)
+            uni.showToast({ title: '申请失败', icon: 'none' })
+          })
+      }
+    },
+  })
+}
+
+// 申请取消订单
+const submitCancel = async () => {
+  if (!reasonText.value) {
+    return uni.showToast({ title: '请输入取消原因', icon: 'none' })
+  }
+  try {
+    await cancelOrder(currentOrderNo.value, reasonText.value)
+    uni.showToast({ title: '申请成功' })
+    showCancel.value = false
+    refreshList()
+  } catch (e) {
+    uni.showToast({ title: '申请失败', icon: 'none' })
+  }
+}
+
+// 申请退款
+const submitRefund = async () => {
+  if (!reasonText.value) {
+    return uni.showToast({ title: '请输入退款原因', icon: 'none' })
+  }
+  try {
+    await applyRefund(currentOrderNo.value, reasonText.value)
+    uni.showToast({ title: '退款申请已提交' })
+    showRefund.value = false
+    refreshList()
+  } catch (e) {
+    uni.showToast({ title: '申请失败', icon: 'none' })
+  }
 }
 </script>
 
@@ -464,5 +592,75 @@ const goDetail = (id) => {
   text-align: center;
   padding: 60rpx 0;
   color: #ccc;
+}
+
+/* 操作按钮 */
+.action-box {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 24rpx;
+  gap: 20rpx;
+}
+.action-btn {
+  padding: 12rpx 24rpx;
+  font-size: 24rpx;
+  border-radius: 12rpx;
+  border: none;
+  color: #fff;
+}
+.cancel-btn {
+  background-color: #ff9500;
+}
+.apply-cancel-btn {
+  background-color: #007aff;
+}
+.refund-btn {
+  background-color: #06c160;
+}
+
+/* 弹窗样式 */
+.modal-box {
+  width: 520rpx;
+  background: #fff;
+  border-radius: 24rpx;
+  padding: 40rpx;
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+}
+.modal-title {
+  font-size: 32rpx;
+  font-weight: bold;
+  text-align: center;
+  margin-bottom: 30rpx;
+}
+.input-box {
+  border: 1rpx solid #eee;
+  border-radius: 12rpx;
+  padding: 20rpx;
+  margin-bottom: 40rpx;
+}
+.modal-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.modal-footer button {
+  padding: 16rpx 32rpx;
+  font-size: 28rpx;
+  border-radius: 12rpx;
+  border: none;
+  background: #f5f5f5;
+}
+.modal-footer button.confirm {
+  background: #d2691e;
+  color: #fff;
+}
+.status-box {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 12rpx;
 }
 </style>

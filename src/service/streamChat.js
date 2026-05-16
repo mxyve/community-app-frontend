@@ -28,14 +28,33 @@ export const streamChat = (params, onMessage, onError, onComplete) => {
           // 如果是 { text, audio } 格式
           if (typeof result === 'string' && result.trim().startsWith('{')) {
             const data = JSON.parse(result)
-            onMessage({
-              text: data.text,
-              audio: data.audio,
-              isComplete: true,
-            })
-            onComplete()
-            resolve()
-            return
+            if (data.text && typeof data.text === 'string') {
+              try {
+                const innerData = JSON.parse(data.text)
+                if (innerData.records && Array.isArray(innerData.records)) {
+                  // 返回社区卡片
+                  onMessage({
+                    content: data.text,
+                    isCommunityData: true,
+                  })
+                  onComplete()
+                  resolve()
+                  return
+                }
+              } catch (e) {}
+            }
+
+            // 普通文字语音
+            if (data.text) {
+              onMessage({
+                text: data.text,
+                audio: data.audio,
+                isComplete: true,
+              })
+              onComplete()
+              resolve()
+              return
+            }
           }
 
           // 普通文本

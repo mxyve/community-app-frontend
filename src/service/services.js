@@ -138,6 +138,31 @@ export function getPayStatus(orderNo) {
   })
 }
 
+/* ---------------- 订单取消 & 退款 ----------------- */
+// 用户申请取消订单（服务中、待付款）
+export function cancelOrder(orderNo, cancelReason) {
+  return http({
+    method: 'GET',
+    url: '/api/v1/orders/cancel',
+    data: {
+      orderNo,
+      cancelReason,
+    },
+  })
+}
+
+// 用户申请退款（已完成）
+export function applyRefund(orderNo, refundReason) {
+  return http({
+    method: 'GET',
+    url: '/api/v1/orders/applyRefund',
+    data: {
+      orderNo,
+      refundReason,
+    },
+  })
+}
+
 /* ---------------- 订单评价相关 ----------------- */
 // 根据订单ID查询评价
 export function getReviewByOrderId(orderId) {

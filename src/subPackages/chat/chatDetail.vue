@@ -183,6 +183,16 @@ const handleSend = async (data) => {
           if (resp.isServiceData) {
             aiMessage.content = resp.content
             aiMessage.isStreaming = false
+            aiMessage.isServiceData = true
+            messageList.value = [...messageList.value]
+            scrollToBottom()
+            return
+          }
+
+          if (resp.isCommunityData) {
+            aiMessage.content = resp.content
+            aiMessage.isStreaming = false
+            aiMessage.isCommunityData = true // 关键
             messageList.value = [...messageList.value]
             scrollToBottom()
             return
@@ -412,6 +422,6 @@ const removeImage = (idx) => {
 .message-scroll {
   flex: 1;
   overflow-y: auto;
-  padding-bottom: 210rpx;
+  padding-bottom: 310rpx;
 }
 </style>

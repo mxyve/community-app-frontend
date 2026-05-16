@@ -24,6 +24,13 @@
               />
             </view>
           </scroll-view>
+          <!-- 用户消息底部：复制按钮 + 时间 -->
+          <view class="message-footer user-footer">
+            <view class="copy-control" @click="copyContent(item)">
+              <image src="/static/icon/copy.svg" mode="aspectFit" class="copy-icon" />
+            </view>
+            <view class="message-time">{{ formatTime(item.createTime) }}</view>
+          </view>
         </view>
         <view class="avatar user">
           <image src="/static/icon/user.png" mode="aspectFill"></image>
@@ -36,21 +43,51 @@
           <image src="/static/icon/robot.png" mode="aspectFill"></image>
         </view>
         <view class="message-bubble assistant">
-          <ChatMarkdown :key="item.id + item.content.length" :content="item.content" />
-          <view v-if="item.isStreaming" class="cursor"></view>
-          <!-- 时间和图标放在同一行 -->
-          <view class="message-footer">
-            <!-- 语音播放按钮放在前面 -->
-            <view class="audio-control" v-if="item.audio">
-              <image
-                :src="item.isPlaying ? '/static/icon/voice_off.svg' : '/static/icon/voice_on.svg'"
-                mode="aspectFit"
-                class="audio-icon"
-                @click="handleAudioClick(item.audio, item.id)"
-              />
+          <!-- 社区帖子卡片 -->
+          <view v-if="item.isCommunityData" class="community-post-list">
+            <view
+              v-for="(post, idx) in parseCommunityPosts(item.content)"
+              :key="idx"
+              class="community-post-item"
+              @click="goToPostDetail(post.articleId)"
+            >
+              <view class="post-header">
+                <image :src="post.avatar" class="avatar" />
+                <view class="post-info">
+                  <text class="nickname">{{ post.nickName }}</text>
+                  <text class="time">{{ formatPostTime(post.createTime) }}</text>
+                </view>
+                <view class="tag" :style="{ backgroundColor: post.tagColor }">
+                  {{ post.tagName }}
+                </view>
+              </view>
+              <view class="post-title">{{ post.title }}</view>
+              <view class="post-content">{{ post.content }}</view>
             </view>
-            <view class="message-time">{{ formatTime(item.createTime) }}</view>
           </view>
+
+          <!-- 服务/普通文本 -->
+          <template v-else>
+            <ChatMarkdown :key="item.id + item.content.length" :content="item.content" />
+            <view v-if="item.isStreaming" class="cursor"></view>
+            <!-- 时间和图标放在同一行 -->
+            <view class="message-footer">
+              <!-- 复制按钮 -->
+              <view class="copy-control" @click="copyContent(item)">
+                <image src="/static/icon/copy.svg" mode="aspectFit" class="copy-icon" />
+              </view>
+              <!-- 语音播放按钮放在前面 -->
+              <view class="audio-control" v-if="item.audio">
+                <image
+                  :src="item.isPlaying ? '/static/icon/voice_off.svg' : '/static/icon/voice_on.svg'"
+                  mode="aspectFit"
+                  class="audio-icon"
+                  @click="handleAudioClick(item.audio, item.id)"
+                />
+              </view>
+              <view class="message-time">{{ formatTime(item.createTime) }}</view>
+            </view>
+          </template>
         </view>
       </view>
     </view>
@@ -102,6 +139,60 @@ const getImages = (urls) => {
 // 处理音频点击，向父组件发送事件
 const handleAudioClick = (audio, messageId) => {
   emit('toggleAudio', { audio, messageId })
+}
+
+const parseCommunityPosts = (content) => {
+  try {
+    const data = JSON.parse(content)
+    return data.records || []
+  } catch (e) {
+    console.error('解析社区帖子失败', e)
+    return []
+  }
+}
+
+const formatPostTime = (timeStr) => {
+  if (!timeStr) return ''
+  const date = new Date(timeStr)
+  return `${date.getMonth() + 1}/${date.getDate()} ${date.getHours()}:${String(date.getMinutes()).padStart(2, '0')}`
+}
+
+const goToPostDetail = (articleId) => {
+  uni.navigateTo({
+    url: `/subPackages/community/detail?articleId=${articleId}`,
+  })
+}
+
+// 复制内容
+const copyContent = (item) => {
+  let copyText = item.content || ''
+
+  // 如果是社区帖子数据，尝试解析并复制标题和内容
+  if (item.isCommunityData) {
+    try {
+      const posts = JSON.parse(item.content)
+      if (posts.records && posts.records.length) {
+        copyText = posts.records.map((post) => `${post.title}\n${post.content}`).join('\n\n')
+      }
+    } catch (e) {
+      copyText = item.content || ''
+    }
+  }
+
+  if (!copyText) {
+    uni.showToast({ icon: 'none', title: '无内容可复制' })
+    return
+  }
+
+  uni.setClipboardData({
+    data: copyText,
+    success: () => {
+      uni.showToast({ icon: 'success', title: '复制成功' })
+    },
+    fail: () => {
+      uni.showToast({ icon: 'none', title: '复制失败' })
+    },
+  })
 }
 </script>
 
@@ -269,5 +360,77 @@ const handleAudioClick = (audio, messageId) => {
   width: 32rpx;
   height: 32rpx;
   padding: 4rpx;
+}
+
+.community-post-list {
+  display: flex;
+  flex-direction: column;
+  gap: 20rpx;
+}
+.community-post-item {
+  background: #fff;
+  border-radius: 16rpx;
+  padding: 20rpx;
+  border: 1rpx solid #eee;
+}
+.post-header {
+  display: flex;
+  align-items: center;
+  gap: 16rpx;
+  margin-bottom: 12rpx;
+}
+.post-header .avatar {
+  width: 60rpx;
+  height: 60rpx;
+  border-radius: 50%;
+}
+.post-info {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 4rpx;
+}
+.nickname {
+  font-size: 26rpx;
+  font-weight: bold;
+  color: #333;
+}
+.time {
+  font-size: 22rpx;
+  color: #999;
+}
+.tag {
+  padding: 4rpx 12rpx;
+  border-radius: 20rpx;
+  font-size: 22rpx;
+  color: #fff;
+}
+.post-title {
+  font-size: 28rpx;
+  font-weight: bold;
+  margin-bottom: 8rpx;
+}
+.post-content {
+  font-size: 26rpx;
+  color: #666;
+  line-height: 1.4;
+}
+
+/* 复制按钮样式 */
+.copy-control {
+  display: inline-flex;
+  align-items: center;
+}
+
+.copy-icon {
+  width: 28rpx;
+  height: 28rpx;
+  padding: 4rpx;
+}
+
+/* 用户消息底部样式 */
+.user-footer {
+  justify-content: flex-end;
+  margin-top: 10rpx;
 }
 </style>

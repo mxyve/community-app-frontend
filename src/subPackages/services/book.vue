@@ -16,7 +16,7 @@
     <view class="form-item" @click="showDateTimePicker = true">
       <text class="label">预约时间</text>
       <view class="picker">
-        {{ form.serviceTime || '请选择预约时间' }}
+        {{ form.serviceTimeDisplay || '请选择预约时间' }}
       </view>
     </view>
 
@@ -153,7 +153,8 @@ import { provinceData } from '@/common/area.js'
 const { safeAreaInsets } = uni.getSystemInfoSync()
 const serviceInfo = ref({})
 const form = ref({
-  serviceTime: '',
+  serviceTime: '', // 用于提交的 ISO 格式
+  serviceTimeDisplay: '', // 用于显示的格式
   province: '',
   city: '',
   district: '',
@@ -215,10 +216,14 @@ const confirmDateTime = () => {
   const hour = hours.value[val[3]]
   const minute = minutes.value[val[4]]
 
-  // 改为 ISO 格式：YYYY-MM-DDTHH:mm:00
-  const dateTime = `${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}T${String(hour).padStart(2, '0')}:${String(minute).padStart(2, '0')}:00`
+  // ISO 格式（用于提交）
+  const dateTimeISO = `${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}T${String(hour).padStart(2, '0')}:${String(minute).padStart(2, '0')}:00`
 
-  form.value.serviceTime = dateTime
+  // 显示格式（用于界面）
+  const dateTimeDisplay = `${year}年${String(month).padStart(2, '0')}月${String(day).padStart(2, '0')}日 ${String(hour).padStart(2, '0')}:${String(minute).padStart(2, '0')}`
+
+  form.value.serviceTime = dateTimeISO
+  form.value.serviceTimeDisplay = dateTimeDisplay
   showDateTimePicker.value = false
 }
 

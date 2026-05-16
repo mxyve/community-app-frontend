@@ -28,6 +28,40 @@
       </view>
     </view>
 
+    <!-- 标签快捷输入栏 -->
+    <view class="tag-container">
+      <scroll-view scroll-x class="tag-scroll-view" show-scrollbar="false">
+        <view class="tag-scroll-content">
+          <!-- 服务类固定标签 -->
+          <view
+            class="tag-item"
+            :style="{ backgroundColor: '#b86b3f', color: '#fff' }"
+            @click="appendTag('#服务推荐')"
+          >
+            #服务推荐
+          </view>
+          <view
+            class="tag-item"
+            :style="{ backgroundColor: '#409EFF', color: '#fff' }"
+            @click="appendTag('#订单查询')"
+          >
+            #订单查询
+          </view>
+
+          <!-- 社区动态标签（后端返回，按sortOrder） -->
+          <view
+            class="tag-item tag-community"
+            :style="{ borderColor: item.color }"
+            v-for="item in communityTags"
+            :key="item.tagId"
+            @click="appendTag(`#${item.name}`)"
+          >
+            #{{ item.name }}
+          </view>
+        </view>
+      </scroll-view>
+    </view>
+
     <!-- 输入行 -->
     <view class="input-row">
       <!-- 加号按钮 -->
@@ -91,7 +125,8 @@
 </template>
 
 <script setup>
-import { ref } from 'vue'
+import { ref, onMounted } from 'vue'
+import { getTagList } from '@/service/community.js'
 
 const props = defineProps({
   sending: {
@@ -122,6 +157,32 @@ const recordedAudioBase64 = ref('')
 const toggleInputMode = () => {
   inputMode.value = inputMode.value === 'text' ? 'voice' : 'text'
 }
+
+const communityTags = ref([]) // 社区标签列表
+
+// 加载社区标签
+const loadTagList = async () => {
+  try {
+    const res = await getTagList()
+    // 按 sortOrder 正序排列
+    communityTags.value = res.data.sort((a, b) => a.sortOrder - b.sortOrder)
+  } catch (err) {
+    console.error('加载标签失败', err)
+  }
+}
+
+// 点击标签追加到输入框
+const appendTag = (tagText) => {
+  if (inputMode.value !== 'text') return
+  const current = inputText.value || ''
+  // 避免重复添加
+  if (current.includes(tagText)) return
+  inputText.value = (current + '' + tagText).trim()
+}
+
+onMounted(() => {
+  loadTagList() // 加载标签
+})
 
 // 开始录音
 const startRecord = () => {
@@ -209,7 +270,7 @@ const removeImage = (idx) => {
 .function-top-bar {
   display: flex;
   gap: 12rpx;
-  margin-bottom: 12rpx;
+  margin-bottom: 8rpx;
 }
 .top-switch-item {
   display: flex;
@@ -238,11 +299,11 @@ const removeImage = (idx) => {
   background: #ffffff;
   border-top: 2rpx solid #f0e0d2;
   border-radius: 32rpx 32rpx 0 0;
-  padding: 20rpx 30rpx 30rpx;
-  padding-bottom: calc(20rpx + env(safe-area-inset-bottom));
+  padding: 16rpx 30rpx 6rpx;
+  padding-bottom: calc(6rpx + env(safe-area-inset-bottom));
   display: flex;
   flex-direction: column;
-  gap: 20rpx;
+  gap: 12rpx;
   box-shadow: 0 -6rpx 20rpx -12rpx #a6897a;
   flex-shrink: 0;
   z-index: 10;
@@ -410,5 +471,36 @@ const removeImage = (idx) => {
 /* 录音时的反馈 */
 .voice-input-wrapper:active {
   background: #e8ddd2;
+}
+
+/* 标签容器 */
+.tag-container {
+  margin-bottom: 8rpx;
+}
+
+.tag-scroll-view {
+  width: 100%;
+  white-space: nowrap;
+}
+
+.tag-scroll-content {
+  display: inline-flex;
+  gap: 10rpx;
+  padding: 6rpx 0;
+}
+
+.tag-item {
+  padding: 8rpx 20rpx;
+  border-radius: 30rpx;
+  font-size: 24rpx;
+  border: 2rpx solid;
+  background: transparent;
+  white-space: nowrap;
+  flex-shrink: 0;
+  display: inline-block;
+}
+
+.tag-community {
+  background: transparent;
 }
 </style>

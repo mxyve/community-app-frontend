@@ -589,8 +589,8 @@ const handleQuitClick = () => {
   border-radius: 24px;
   overflow: hidden;
   box-shadow:
-    0 20px 30px -15px #c4a690,
-    0 4px 0 0 #e8d9cc;
+    0 10px 20px -12px #c4a690,
+    0 2px 0 0 #e8d9cc;
   border: 1px solid #f5e6d9;
 }
 
