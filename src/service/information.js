@@ -13,9 +13,9 @@ import { http } from '@/utils/http'
 export function getInformationPage(params) {
   return http({
     method: 'GET',
-    url: '/api/front/information/page',
+    url: '/api/v1/information/page',
     data: params,
-  }) 
+  })
 }
 
 /**
@@ -25,6 +25,6 @@ export function getInformationPage(params) {
 export function getInformationDetail(id) {
   return http({
     method: 'GET',
-    url: `/api/front/information/detail/${id}`,
+    url: `/api/v1/information/detail/${id}`,
   })
 }

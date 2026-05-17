@@ -132,13 +132,13 @@
             </view>
             <text class="menu-arrow">→</text>
           </view>
-          <view class="menu-item" @click="goToSettings">
+          <!-- <view class="menu-item" @click="goToSettings">
             <view class="menu-left">
               <view class="menu-icon">⚙️</view>
               <text class="menu-text">系统设置</text>
             </view>
             <text class="menu-arrow">→</text>
-          </view>
+          </view> -->
         </view>
       </view>
 
