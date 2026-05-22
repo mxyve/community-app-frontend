@@ -3,7 +3,7 @@ export const streamChat = (params, onMessage, onError, onComplete) => {
     const token = uni.getStorageSync('token')
 
     uni.request({
-      url: 'http://localhost:8080/api/v1/messages/stream',
+      url: 'http://192.168.66.19:8080/api/v1/messages/stream',
       method: 'POST',
       timeout: 600000,
       header: {

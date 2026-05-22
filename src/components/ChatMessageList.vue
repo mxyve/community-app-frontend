@@ -44,7 +44,7 @@
         </view>
         <view class="message-bubble assistant">
           <!-- 社区帖子卡片 -->
-          <view v-if="item.isCommunityData" class="community-post-list">
+          <view v-if="parseCommunityPosts(item.content).length" class="community-post-list">
             <view
               v-for="(post, idx) in parseCommunityPosts(item.content)"
               :key="idx"
@@ -143,10 +143,16 @@ const handleAudioClick = (audio, messageId) => {
 
 const parseCommunityPosts = (content) => {
   try {
+    // 第一步：先判断是不是 JSON 格式
+    if (!content || typeof content !== 'string') return []
+    const trim = content.trim()
+    // 必须以 { 开头，包含 "records" 才解析，避免普通文本报错
+    if (!trim.startsWith('{') || !trim.includes('"records"')) return []
+
     const data = JSON.parse(content)
     return data.records || []
   } catch (e) {
-    console.error('解析社区帖子失败', e)
+    console.log('不是社区数据，跳过解析')
     return []
   }
 }

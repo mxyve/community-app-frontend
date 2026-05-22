@@ -187,32 +187,43 @@ onMounted(() => {
 // 开始录音
 const startRecord = () => {
   isRecording.value = true
-  uni.showToast({ icon: 'none', title: '录音中...', duration: 60000 })
+  uni.showToast({
+    icon: 'none',
+    title: '录音中...',
+    duration: 60000,
+  })
+
   recorderManager.start({
     sampleRate: 16000,
-    format: 'pcm', // 改为 pcm 格式
-    numberOfChannels: 1, // 单声道
-    frameSize: 1,
+    format: 'mp3',
+    numberOfChannels: 1,
+    encodeBitRate: 48000,
   })
 }
 
-// 结束录音 → 保存音频
+// 单次绑定停止回调
+recorderManager.onStop((res) => {
+  uni.getFileSystemManager().readFile({
+    filePath: res.tempFilePath,
+    encoding: 'base64',
+    success: (file) => {
+      recordedAudioBase64.value = file.data
+      uni.showToast({ icon: 'none', title: '录音完成，点击发送', duration: 2000 })
+    },
+  })
+})
+
+// 结束录音 → 自动发送
 const stopRecord = () => {
   if (!isRecording.value) return
   isRecording.value = false
   uni.hideToast()
-
   recorderManager.stop()
-  recorderManager.onStop((res) => {
-    uni.getFileSystemManager().readFile({
-      filePath: res.tempFilePath,
-      encoding: 'base64',
-      success: (file) => {
-        recordedAudioBase64.value = file.data
-        uni.showToast({ icon: 'none', title: '录音完成，点击发送', duration: 2000 })
-      },
-    })
-  })
+
+  // 自动发
+  setTimeout(() => {
+    sendVoiceMessage()
+  }, 200)
 }
 
 // 发送语音消息
@@ -224,12 +235,13 @@ const sendVoiceMessage = () => {
   if (props.sending) return
 
   emit('send', {
-    content: '',
+    // 传一个占位内容，让前端显示“[语音消息]”
+    content: '[语音消息]',
     features: features.value,
     audio: recordedAudioBase64.value,
   })
+
   recordedAudioBase64.value = ''
-  // 录音发送后切换回文字模式
   inputMode.value = 'text'
 }
 

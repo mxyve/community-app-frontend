@@ -29,12 +29,17 @@
         <view class="tab-item" :class="{ active: currentStatus === 4 }" @click="switchStatus(4)">
           已完成
         </view>
-        <view
-          class="tab-item"
-          :class="{ active: currentStatus === 6 || currentStatus === 8 }"
-          @click="switchStatus(6)"
-        >
-          已取消/退款
+        <view class="tab-item" :class="{ active: currentStatus === 5 }" @click="switchStatus(5)">
+          取消申请中
+        </view>
+        <view class="tab-item" :class="{ active: currentStatus === 6 }" @click="switchStatus(6)">
+          已取消
+        </view>
+        <view class="tab-item" :class="{ active: currentStatus === 7 }" @click="switchStatus(7)">
+          退款中
+        </view>
+        <view class="tab-item" :class="{ active: currentStatus === 8 }" @click="switchStatus(8)">
+          已退款
         </view>
       </view>
     </scroll-view>
@@ -177,14 +182,13 @@ const fetchOrderList = async () => {
       current: current.value,
       size: size.value,
     }
-    // 状态筛选
+    // 状态筛选（全部单个查询，最标准！）
     if (currentStatus.value !== '') {
       params.status = currentStatus.value
     }
 
     const res = await getOrderPage(params)
     const records = res.data.records || []
-    console.log(res)
 
     if (current.value === 1) {
       orderList.value = records
