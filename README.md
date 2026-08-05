@@ -1,70 +1,69 @@
-## 项目简介
+# 基于智能大模型的社区多租户服务平台前台
+## 项目演示视频
+百度网盘链接：https://pan.baidu.com/s/1XB54-34l4PofeCliD-3rqA
+提取码：6mct
 
-当前仓库为【智能社区应用】的 uni-app 项目模板。
+## 项目介绍
+本项目是面向社区居民的微信小程序，配套后台管理系统使用，基于 UniApp 跨端开发，以上门便民服务、AI 智能问答、邻里互助三大核心功能为主体，集成实时客服、线上支付配套能力。支持用户手动切换所在地区，系统根据所选地区就近推送服务与社区帖子，完整打通居民、入驻商家、运营平台三方业务链路。
 
 ## 技术栈
+### 小程序前端
+| 技术名称 |
+| ---- |
+| UniApp、Vue3、TypeScript |
+| Vite构建工具 |
+| UniUI组件库 |
+| Pinia全局状态管理 |
+| 微信原生API |
 
-- 前端框架：uni-app
-- 状态管理：pinia
-- 组件库：uni-ui
+### 小程序配套后端（共用服务端）
+| 分类 | 技术名称 |
+| ---- | ---- |
+| 基础框架 | Spring Boot、Maven多模块、Java |
+| Web通信 | Spring Web、WebSocket、AOP |
+| 数据层 | MyBatis-Plus、MySQL、Druid连接池、Redis |
+| 安全认证 | Spring Security、JWT、短信验证码 |
+| AI相关 | Spring AI、通义千问、Tika、Milvus向量库 |
+| 音视频 | 阿里云语音识别/语音合成 |
+| 文件存储 | 阿里云OSS |
+| 支付能力 | 支付宝沙箱支付 |
 
-## 运行程序
+### 中间件&第三方服务
+| 分类 | 服务 |
+| ---- | ---- |
+| 数据库中间件 | Redis、Milvus向量数据库 |
+| 第三方能力 | 阿里云OSS、阿里云语音、容联云短信、支付宝、通义千问AI |
 
-1. 安装依赖
+## 小程序完整功能
+### 1. 用户登录与个人中心
+- 手机号验证码登录、微信快捷登录、账号退出
+- 个人信息查看
+- 地区切换：手动选择省市区，系统按所选地区展示服务和资讯
+- 我的订单、我的评价、我的帖子、我的收藏统一管理
+- 意见反馈：提交、查看、撤销、删除反馈
 
-- npm 方式
+### 2. 首页便民模块
+- 社区资讯浏览，自动统计文章浏览量
+- 维修/回收/养老/宠物等生活服务分类展示
+- 服务详情查看、收藏、预约下单
 
-```bash
-npm i --registry=https://registry.npmmirror.com
-```
+### 3. 订单交易全流程
+- 购物车新增、修改、删除
+- 创建订单、订单分页筛选、订单详情查看
+- 支付宝沙箱支付
+- 待服务/服务中/已完成订单区分，支持取消、退款申请
+- 服务评价、上传评价图片
 
-- pnpm 方式
+### 4. AI智能助手（核心功能，当前为基础版本，功能待迭代完善）
+- 支持多轮对话、图文问答、语音识别、语音合成
+- 已实现基础工具调用：查询用户订单、检索对应服务、匹配相关邻里帖子
+- 会话管理：会话列表，删除会话
 
-```
-pnpm i --registry=https://registry.npmmirror.com
-```
+### 5. 邻里圈社区互动
+- 发布帖子
+- 帖子点赞、取消点赞、两级树形评论/回复
+- 按标签、地区筛选社区动态
 
-2. 运行程序(微信小程序)
-
-```
-npm run dev:mp-weixin
-```
-
-3. 微信开发者工具导入 /dist/dev/mp-weixin 目录
-
-## 工程结构解析
-
-├── .vscode # VS Code 插件 + 设置 + 配置文件
-├── dist # 打包文件夹（可删除重新打包）
-├── src # 源代码
-│ ├── api # 所有请求
-│ ├── components # 全局组件
-│ ├── composables # 组合式函数
-│ ├── pages # 主包页面
-│ ├── index # 首页
-│ ├── contribute # 投稿页
-│ ├── my # 我的
-│ └── login # 登录页
-│ ├── service # 封装网络请求
-│ ├── static # 存放应用引用的本地静态资源的目录
-│ ├── images # 普通图片
-│ └── tabs # tabBar 图片
-│ ├── stores # 全局 pinia store
-│ ├── modules # 模块
-│ └── index.ts # store 入口
-│ ├── styles # 全局样式
-├── global.scss # 样式
-│ └── fonts.scss # 字体图标
-│ ├── utils # 全局方法
-│ ├── App.vue # 入口页面
-│ ├── main.js # Vue 初始化入口文件
-│ ├── pages.json # 配置页面路由等页面类信息
-│ ├── manifest.json # 配置 appid 等打包信息
-│ └── uni.scss # uni-app 内置的常用样式变量
-├── .editorconfig # editorconfig 配置
-├── .eslintrc.cjs # eslint 配置
-├── .prettierrc.cjs # prettier 配置
-├── .gitignore # git 忽略文件
-├── index.html # H5 端首页
-├── package.json # package.json 依赖
-└── vite.config.ts # vite 配置
+### 6. 实时在线客服
+- WebSocket长连接和商家实时聊天
+- 历史聊天记录持久保存
